@@ -131,6 +131,13 @@ public class AppUser extends AbstractPersistableCustom<Long> implements Platform
     @Column(name = "cannot_change_password", nullable = true)
     private Boolean cannotChangePassword;
 
+    @Column(name = "failed_login_attempts", nullable = false)
+    private Integer failedLoginAttempts;
+
+    public Integer getFailedLoginAttempts() {
+        return this.failedLoginAttempts;
+    }
+
     public static AppUser fromJson(final Office userOffice, final Staff linkedStaff, final Set<Role> allRoles,
             final Collection<Client> clients, final JsonCommand command) {
 
@@ -174,6 +181,7 @@ public class AppUser extends AbstractPersistableCustom<Long> implements Platform
         this.accountNonLocked = false;
         this.credentialsNonExpired = false;
         this.roles = new HashSet<>();
+        this.failedLoginAttempts = 0;
     }
 
     public AppUser(final Office office, final User user, final Set<Role> roles, final String email, final String firstname,
@@ -197,6 +205,7 @@ public class AppUser extends AbstractPersistableCustom<Long> implements Platform
         this.isSelfServiceUser = isSelfServiceUser;
         this.appUserClientMappings = createAppUserClientMappings(clients);
         this.cannotChangePassword = cannotChangePassword;
+        this.failedLoginAttempts = 0;
     }
 
     public EnumOptionData organisationalRoleData() {
@@ -682,6 +691,21 @@ public class AppUser extends AbstractPersistableCustom<Long> implements Platform
             }
         }
         return newAppUserClientMappings;
+    }
+
+    public void incrementFailedLoginAttempts() {
+        if (this.failedLoginAttempts == null) {
+            this.failedLoginAttempts = 0;
+        }
+        this.failedLoginAttempts++;
+    }
+
+    public void resetFailedLoginAttempts() {
+        this.failedLoginAttempts = 0;
+    }
+
+    public void updateAccountLocked(boolean locked) {
+        this.accountNonLocked = !locked;
     }
 
     @Override

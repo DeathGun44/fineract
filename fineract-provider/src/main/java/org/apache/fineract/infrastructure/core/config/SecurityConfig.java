@@ -113,6 +113,8 @@ public class SecurityConfig {
     private LoanCOBFilterHelper loanCOBFilterHelper;
     @Autowired
     private IdempotencyStoreHelper idempotencyStoreHelper;
+    @Autowired
+    private org.apache.fineract.infrastructure.security.service.UserLockoutService userLockoutService;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -245,7 +247,8 @@ public class SecurityConfig {
 
     @Bean(name = "customAuthenticationProvider")
     public DaoAuthenticationProvider authProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+        org.apache.fineract.infrastructure.security.service.FineractAuthenticationProvider authProvider = new org.apache.fineract.infrastructure.security.service.FineractAuthenticationProvider(
+                userLockoutService);
         authProvider.setUserDetailsService(userDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;

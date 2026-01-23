@@ -548,4 +548,20 @@ public class ConfigurationDomainServiceJpa implements ConfigurationDomainService
         return getGlobalConfigurationPropertyData(
                 GlobalConfigurationConstants.ASSET_OWNER_TRANSFER_OUTSTANDING_INTEREST_CALCULATION_STRATEGY).getStringValue();
     }
+
+    @Override
+    public Long retrieveMaxFailedLoginAttempts() {
+        final GlobalConfigurationPropertyData property = getGlobalConfigurationPropertyData(
+                GlobalConfigurationConstants.MAX_FAILED_LOGIN_ATTEMPTS);
+        if (!property.isEnabled()) {
+            return null;
+        }
+        Long value = property.getValue();
+        return (value != null && value > 0) ? value : 3L;
+    }
+
+    @Override
+    public boolean isLoginRetryLimitEnabled() {
+        return getGlobalConfigurationPropertyData(GlobalConfigurationConstants.MAX_FAILED_LOGIN_ATTEMPTS).isEnabled();
+    }
 }

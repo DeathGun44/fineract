@@ -151,4 +151,8 @@ public interface ConfigurationDomainService {
     boolean isImmediateChargeAccrualPostMaturityEnabled();
 
     String getAssetOwnerTransferOustandingInterestStrategy();
+
+    Long retrieveMaxFailedLoginAttempts();
+
+    boolean isLoginRetryLimitEnabled();
 }

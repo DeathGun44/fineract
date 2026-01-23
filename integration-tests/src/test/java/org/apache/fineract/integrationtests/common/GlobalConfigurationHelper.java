@@ -585,6 +585,13 @@ public class GlobalConfigurationHelper {
                 "ACTIVE,TRANSFER_IN_PROGRESS,TRANSFER_ON_HOLD,OVERPAID,CLOSED_OBLIGATIONS_MET");
         defaults.add(allowedLoanStatusesForDelayedSettlementExternalAssetTransfer);
 
+        HashMap<String, Object> maxFailedLoginAttempts = new HashMap<>();
+        maxFailedLoginAttempts.put("name", GlobalConfigurationConstants.MAX_FAILED_LOGIN_ATTEMPTS);
+        maxFailedLoginAttempts.put("value", 3L);
+        maxFailedLoginAttempts.put("enabled", false);
+        maxFailedLoginAttempts.put("trapDoor", false);
+        defaults.add(maxFailedLoginAttempts);
+
         return defaults;
     }
 
