@@ -24,9 +24,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.event.SimpleApplicationEventMulticaster;
-import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextHolderStrategy;
+import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecutor;
 
 @Configuration
 public class SpringConfig {
@@ -34,12 +35,22 @@ public class SpringConfig {
     @Bean
     public SimpleApplicationEventMulticaster applicationEventMulticaster() {
         SimpleApplicationEventMulticaster saem = new SimpleApplicationEventMulticaster();
-        saem.setTaskExecutor(new SimpleAsyncTaskExecutor());
+
+        ThreadPoolTaskExecutor threadPool = new ThreadPoolTaskExecutor();
+        threadPool.setCorePoolSize(20);
+        threadPool.setMaxPoolSize(100);
+        threadPool.setQueueCapacity(500);
+        threadPool.setThreadNamePrefix("FineractEvent-");
+        threadPool.setWaitForTasksToCompleteOnShutdown(true);
+        threadPool.setAwaitTerminationSeconds(60);
+        threadPool.initialize();
+
+        DelegatingSecurityContextAsyncTaskExecutor securityExecutor = new DelegatingSecurityContextAsyncTaskExecutor(threadPool);
+
+        saem.setTaskExecutor(securityExecutor);
         return saem;
     }
 
-    // The application events (for importing) rely on the inheritable thread local security context strategy
-    // This is NOT compatible with threadpools so if we use threadpools the below will need to be reworked
     @Bean
     public MethodInvokingFactoryBean overrideSecurityContextHolderStrategy() {
         MethodInvokingFactoryBean mifb = new MethodInvokingFactoryBean();
