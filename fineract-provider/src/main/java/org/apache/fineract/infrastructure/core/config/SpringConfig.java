@@ -45,8 +45,7 @@ public class SpringConfig {
         threadPool.setAwaitTerminationSeconds(60);
         threadPool.initialize();
 
-        DelegatingSecurityContextAsyncTaskExecutor securityExecutor =
-                new DelegatingSecurityContextAsyncTaskExecutor(threadPool);
+        DelegatingSecurityContextAsyncTaskExecutor securityExecutor = new DelegatingSecurityContextAsyncTaskExecutor(threadPool);
 
         saem.setTaskExecutor(securityExecutor);
         return saem;
