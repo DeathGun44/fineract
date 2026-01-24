@@ -49,7 +49,6 @@ import org.apache.fineract.portfolio.loanproduct.productmix.data.ProductMixReque
 import org.apache.fineract.portfolio.loanproduct.productmix.service.ProductMixReadPlatformService;
 import org.apache.fineract.portfolio.loanproduct.service.LoanProductReadPlatformService;
 import org.springframework.stereotype.Component;
-import io.swagger.v3.oas.annotations.Parameter;
 
 @Path("/v1/loanproducts/{productId}/productmix")
 @Component

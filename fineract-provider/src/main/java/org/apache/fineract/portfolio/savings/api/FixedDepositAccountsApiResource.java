@@ -489,8 +489,8 @@ public class FixedDepositAccountsApiResource {
     @RequestBody(description = "Upload fixed deposit template", content = {
             @Content(mediaType = MediaType.MULTIPART_FORM_DATA, schema = @Schema(implementation = UploadRequest.class)) })
     public String postFixedDepositTemplate(@Parameter(hidden = true) @FormDataParam("file") InputStream uploadedInputStream,
-            @Parameter(hidden = true) @FormDataParam("file") FormDataContentDisposition fileDetail, @Parameter(hidden = true) @FormDataParam("locale") final String locale,
-            @FormDataParam("dateFormat") final String dateFormat) {
+            @Parameter(hidden = true) @FormDataParam("file") FormDataContentDisposition fileDetail,
+            @Parameter(hidden = true) @FormDataParam("locale") final String locale, @FormDataParam("dateFormat") final String dateFormat) {
         Long importDocumentId = bulkImportWorkbookService.importWorkbook(GlobalEntityType.FIXED_DEPOSIT_ACCOUNTS.toString(),
                 uploadedInputStream, fileDetail, locale, dateFormat);
         return this.toApiJsonSerializer.serialize(importDocumentId);
@@ -511,8 +511,8 @@ public class FixedDepositAccountsApiResource {
     @RequestBody(description = "Upload fixed deposit transaction template", content = {
             @Content(mediaType = MediaType.MULTIPART_FORM_DATA, schema = @Schema(implementation = UploadRequest.class)) })
     public String postFixedDepositTransactionTemplate(@Parameter(hidden = true) @FormDataParam("file") InputStream uploadedInputStream,
-            @Parameter(hidden = true) @FormDataParam("file") FormDataContentDisposition fileDetail, @FormDataParam("locale") final String locale,
-            @FormDataParam("dateFormat") final String dateFormat) {
+            @Parameter(hidden = true) @FormDataParam("file") FormDataContentDisposition fileDetail,
+            @FormDataParam("locale") final String locale, @FormDataParam("dateFormat") final String dateFormat) {
         final Long importDocumentId = this.bulkImportWorkbookService.importWorkbook(GlobalEntityType.FIXED_DEPOSIT_TRANSACTIONS.toString(),
                 uploadedInputStream, fileDetail, locale, dateFormat);
         return this.toApiJsonSerializer.serialize(importDocumentId);

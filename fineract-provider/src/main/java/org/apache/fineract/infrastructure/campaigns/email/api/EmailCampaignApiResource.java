@@ -51,7 +51,6 @@ import org.apache.fineract.infrastructure.core.serialization.DefaultToApiJsonSer
 import org.apache.fineract.infrastructure.core.serialization.FromJsonHelper;
 import org.apache.fineract.infrastructure.security.service.PlatformSecurityContext;
 import org.springframework.stereotype.Component;
-import io.swagger.v3.oas.annotations.Parameter;
 
 /**
  * Created with IntelliJ IDEA. User: andrew Date: 19-5-14 Time: 15:17 To change this template use File | Settings | File

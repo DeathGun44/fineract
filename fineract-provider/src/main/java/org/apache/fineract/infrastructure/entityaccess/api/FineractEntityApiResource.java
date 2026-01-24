@@ -44,7 +44,6 @@ import org.apache.fineract.infrastructure.entityaccess.data.FineractEntityToEnti
 import org.apache.fineract.infrastructure.entityaccess.service.FineractEntityAccessReadService;
 import org.apache.fineract.infrastructure.security.service.PlatformSecurityContext;
 import org.springframework.stereotype.Component;
-import io.swagger.v3.oas.annotations.Parameter;
 
 @Path("/v1/entitytoentitymapping")
 @Consumes({ MediaType.APPLICATION_JSON })

@@ -34,7 +34,6 @@ import org.apache.fineract.spm.data.SurveyData;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import io.swagger.v3.oas.annotations.Parameter;
 
 @Path("/v1/self/surveys")
 @Component

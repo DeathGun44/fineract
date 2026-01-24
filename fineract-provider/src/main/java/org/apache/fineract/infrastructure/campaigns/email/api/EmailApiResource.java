@@ -50,7 +50,6 @@ import org.apache.fineract.infrastructure.core.service.SearchParameters;
 import org.apache.fineract.infrastructure.security.service.PlatformSecurityContext;
 import org.apache.fineract.infrastructure.security.service.SqlValidator;
 import org.springframework.stereotype.Component;
-import io.swagger.v3.oas.annotations.Parameter;
 
 @Path("/v1/email")
 @Consumes({ MediaType.APPLICATION_JSON })

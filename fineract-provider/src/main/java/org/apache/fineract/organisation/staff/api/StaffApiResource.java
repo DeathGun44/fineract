@@ -159,8 +159,8 @@ public class StaffApiResource {
     @RequestBody(description = "Upload staff template", content = {
             @Content(mediaType = MediaType.MULTIPART_FORM_DATA, schema = @Schema(implementation = UploadRequest.class)) })
     public Long postTemplate(@Parameter(hidden = true) @FormDataParam("file") InputStream uploadedInputStream,
-            @Parameter(hidden = true) @FormDataParam("file") FormDataContentDisposition fileDetail, @FormDataParam("locale") final String locale,
-            @FormDataParam("dateFormat") final String dateFormat) {
+            @Parameter(hidden = true) @FormDataParam("file") FormDataContentDisposition fileDetail,
+            @FormDataParam("locale") final String locale, @FormDataParam("dateFormat") final String dateFormat) {
         return bulkImportWorkbookService.importWorkbook(GlobalEntityType.STAFF.toString(), uploadedInputStream, fileDetail, locale,
                 dateFormat);
     }

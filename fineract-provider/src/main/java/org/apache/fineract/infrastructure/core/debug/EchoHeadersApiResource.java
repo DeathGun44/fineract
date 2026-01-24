@@ -26,7 +26,6 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import org.springframework.stereotype.Component;
-import io.swagger.v3.oas.annotations.Parameter;
 
 /**
  * Returns HTTP Request headers. Useful for debugging (e.g. for

@@ -467,8 +467,8 @@ public class CentersApiResource {
     @RequestBody(description = "Upload centers template", content = {
             @Content(mediaType = MediaType.MULTIPART_FORM_DATA, schema = @Schema(implementation = UploadRequest.class)) })
     public String postCentersTemplate(@Parameter(hidden = true) @FormDataParam("file") InputStream uploadedInputStream,
-            @Parameter(hidden = true) @FormDataParam("file") FormDataContentDisposition fileDetail, @FormDataParam("locale") final String locale,
-            @FormDataParam("dateFormat") final String dateFormat) {
+            @Parameter(hidden = true) @FormDataParam("file") FormDataContentDisposition fileDetail,
+            @FormDataParam("locale") final String locale, @FormDataParam("dateFormat") final String dateFormat) {
         final Long importDocumentId = this.bulkImportWorkbookService.importWorkbook(GlobalEntityType.CENTERS.toString(),
                 uploadedInputStream, fileDetail, locale, dateFormat);
         return this.toApiJsonSerializer.serialize(importDocumentId);

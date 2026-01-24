@@ -243,8 +243,8 @@ public class UsersApiResource {
     @RequestBody(description = "Upload users template", content = {
             @Content(mediaType = MediaType.MULTIPART_FORM_DATA, schema = @Schema(implementation = UploadRequest.class)) })
     public String postUsersTemplate(@Parameter(hidden = true) @FormDataParam("file") InputStream uploadedInputStream,
-            @Parameter(hidden = true) @FormDataParam("file") FormDataContentDisposition fileDetail, @FormDataParam("locale") final String locale,
-            @FormDataParam("dateFormat") final String dateFormat) {
+            @Parameter(hidden = true) @FormDataParam("file") FormDataContentDisposition fileDetail,
+            @FormDataParam("locale") final String locale, @FormDataParam("dateFormat") final String dateFormat) {
         final Long importDocumentId = this.bulkImportWorkbookService.importWorkbook(GlobalEntityType.USERS.toString(), uploadedInputStream,
                 fileDetail, locale, dateFormat);
         return this.toApiJsonSerializer.serialize(importDocumentId);

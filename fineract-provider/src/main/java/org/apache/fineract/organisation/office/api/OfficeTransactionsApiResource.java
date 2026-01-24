@@ -44,7 +44,6 @@ import org.apache.fineract.infrastructure.security.service.PlatformSecurityConte
 import org.apache.fineract.organisation.office.data.OfficeTransactionData;
 import org.apache.fineract.organisation.office.service.OfficeReadPlatformService;
 import org.springframework.stereotype.Component;
-import io.swagger.v3.oas.annotations.Parameter;
 
 @Path("/v1/officetransactions")
 @Component

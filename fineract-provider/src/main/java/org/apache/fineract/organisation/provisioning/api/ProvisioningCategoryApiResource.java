@@ -38,7 +38,6 @@ import org.apache.fineract.infrastructure.security.service.PlatformSecurityConte
 import org.apache.fineract.organisation.provisioning.data.ProvisioningCategoryData;
 import org.apache.fineract.organisation.provisioning.service.ProvisioningCategoryReadPlatformService;
 import org.springframework.stereotype.Component;
-import io.swagger.v3.oas.annotations.Parameter;
 
 @Path("/v1/provisioningcategory")
 @Component

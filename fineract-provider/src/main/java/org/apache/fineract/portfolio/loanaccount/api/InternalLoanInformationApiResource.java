@@ -42,7 +42,6 @@ import org.apache.fineract.portfolio.loanproduct.mapper.AdvancedPaymentDataMappe
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
-import io.swagger.v3.oas.annotations.Parameter;
 
 @Profile(FineractProfiles.TEST)
 @Component

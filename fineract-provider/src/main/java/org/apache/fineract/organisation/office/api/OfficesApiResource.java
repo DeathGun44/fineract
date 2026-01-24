@@ -237,8 +237,8 @@ public class OfficesApiResource {
     @RequestBody(description = "Upload office template", content = {
             @Content(mediaType = MediaType.MULTIPART_FORM_DATA, schema = @Schema(implementation = UploadRequest.class)) })
     public String postOfficeTemplate(@Parameter(hidden = true) @FormDataParam("file") InputStream uploadedInputStream,
-            @Parameter(hidden = true) @FormDataParam("file") FormDataContentDisposition fileDetail, @FormDataParam("locale") final String locale,
-            @FormDataParam("dateFormat") final String dateFormat) {
+            @Parameter(hidden = true) @FormDataParam("file") FormDataContentDisposition fileDetail,
+            @FormDataParam("locale") final String locale, @FormDataParam("dateFormat") final String dateFormat) {
         final Long importDocumentId = bulkImportWorkbookService.importWorkbook(GlobalEntityType.OFFICES.toString(), uploadedInputStream,
                 fileDetail, locale, dateFormat);
         return toApiJsonSerializer.serialize(importDocumentId);

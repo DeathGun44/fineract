@@ -18,6 +18,7 @@
  */
 package org.apache.fineract.portfolio.loanaccount.guarantor.api;
 
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
@@ -68,7 +69,6 @@ import org.apache.fineract.portfolio.loanaccount.service.LoanReadPlatformService
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.springframework.stereotype.Component;
-import io.swagger.v3.oas.annotations.Parameter;
 
 @Path("/v1/loans/{loanId}/guarantors")
 @Component
@@ -198,8 +198,9 @@ public class GuarantorsApiResource {
     @RequestBody(description = "Upload guarantor template", content = {
             @Content(mediaType = MediaType.MULTIPART_FORM_DATA, schema = @Schema(implementation = UploadRequest.class)) })
     public String postGuarantorTemplate(@Parameter(hidden = true) @FormDataParam("file") InputStream uploadedInputStream,
-            @Parameter(hidden = true) @FormDataParam("file") FormDataContentDisposition fileDetail, @FormDataParam("locale") final String locale,
-            @FormDataParam("dateFormat") final String dateFormat, @PathParam("loanId") final Long loanId) {
+            @Parameter(hidden = true) @FormDataParam("file") FormDataContentDisposition fileDetail,
+            @FormDataParam("locale") final String locale, @FormDataParam("dateFormat") final String dateFormat,
+            @PathParam("loanId") final Long loanId) {
         final Long importDocumentId = this.bulkImportWorkbookService.importWorkbook(GlobalEntityType.GUARANTORS.toString(),
                 uploadedInputStream, fileDetail, locale, dateFormat);
         return this.apiJsonSerializerService.serialize(importDocumentId);

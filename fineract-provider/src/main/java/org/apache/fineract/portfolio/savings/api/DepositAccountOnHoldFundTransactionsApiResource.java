@@ -40,7 +40,6 @@ import org.apache.fineract.portfolio.savings.SavingsApiConstants;
 import org.apache.fineract.portfolio.savings.data.DepositAccountOnHoldTransactionData;
 import org.apache.fineract.portfolio.savings.service.DepositAccountOnHoldTransactionReadPlatformService;
 import org.springframework.stereotype.Component;
-import io.swagger.v3.oas.annotations.Parameter;
 
 @Path("/v1/savingsaccounts/{savingsId}/onholdtransactions")
 @Component

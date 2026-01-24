@@ -51,7 +51,6 @@ import org.apache.fineract.infrastructure.sms.data.request.SmsUpdateRequest;
 import org.apache.fineract.infrastructure.sms.param.SmsRequestParam;
 import org.apache.fineract.infrastructure.sms.service.SmsReadPlatformService;
 import org.springframework.stereotype.Component;
-import io.swagger.v3.oas.annotations.Parameter;
 
 @Path("/v1/sms")
 @Consumes({ MediaType.APPLICATION_JSON })

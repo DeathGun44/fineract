@@ -294,7 +294,8 @@ public class ClientsApiResource {
     @RequestBody(description = "Upload client template", content = {
             @Content(mediaType = MediaType.MULTIPART_FORM_DATA, schema = @Schema(implementation = UploadRequest.class)) })
     public String postClientTemplate(@QueryParam("legalFormType") final String legalFormType,
-            @Parameter(hidden = true) @FormDataParam("file") InputStream uploadedInputStream, @Parameter(hidden = true) @FormDataParam("file") FormDataContentDisposition fileDetail,
+            @Parameter(hidden = true) @FormDataParam("file") InputStream uploadedInputStream,
+            @Parameter(hidden = true) @FormDataParam("file") FormDataContentDisposition fileDetail,
             @FormDataParam("locale") final String locale, @FormDataParam("dateFormat") final String dateFormat) {
         final Long importDocumentId = bulkImportWorkbookService.importWorkbook(legalFormType, uploadedInputStream, fileDetail, locale,
                 dateFormat);
