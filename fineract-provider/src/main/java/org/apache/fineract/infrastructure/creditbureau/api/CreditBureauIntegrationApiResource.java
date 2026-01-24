@@ -101,8 +101,8 @@ public class CreditBureauIntegrationApiResource {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @RequestBody(description = "Upload credit report", content = {
             @Content(mediaType = MediaType.MULTIPART_FORM_DATA, schema = @Schema(implementation = UploadRequest.class)) })
-    public String addCreditReport(@FormDataParam("file") final File creditReport, @FormDataParam("file") InputStream uploadedInputStream,
-            @FormDataParam("file") final UriInfo uriInfo, @FormDataParam("file") FormDataContentDisposition fileDetail,
+    public String addCreditReport(@Parameter(hidden = true) @FormDataParam("file") final File creditReport, @Parameter(hidden = true) @FormDataParam("file") InputStream uploadedInputStream,
+            @Parameter(hidden = true) @FormDataParam("file") final UriInfo uriInfo, @Parameter(hidden = true) @FormDataParam("file") FormDataContentDisposition fileDetail,
             @QueryParam("creditBureauId") @Parameter(description = "creditBureauId") final Long creditBureauId) {
 
         final String responseMessage = this.creditReportWritePlatformService.addCreditReport(creditBureauId, creditReport, fileDetail);

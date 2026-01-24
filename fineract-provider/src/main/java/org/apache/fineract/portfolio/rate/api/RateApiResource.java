@@ -42,6 +42,7 @@ import org.apache.fineract.infrastructure.security.service.PlatformSecurityConte
 import org.apache.fineract.portfolio.rate.data.RateData;
 import org.apache.fineract.portfolio.rate.service.RateReadService;
 import org.springframework.stereotype.Component;
+import io.swagger.v3.oas.annotations.Parameter;
 
 /**
  * Bowpi GT Created by Jose on 19/07/2017.

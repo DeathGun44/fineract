@@ -36,6 +36,7 @@ import org.apache.fineract.portfolio.self.client.service.AppuserClientMapperRead
 import org.apache.fineract.portfolio.self.config.SelfServiceModuleIsEnabledCondition;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
+import io.swagger.v3.oas.annotations.Parameter;
 
 @Path("/v1/self/savingsproducts")
 @Component

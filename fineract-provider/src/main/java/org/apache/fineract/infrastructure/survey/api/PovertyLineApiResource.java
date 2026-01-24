@@ -32,6 +32,7 @@ import org.apache.fineract.infrastructure.survey.data.LikeliHoodPovertyLineData;
 import org.apache.fineract.infrastructure.survey.data.PpiPovertyLineData;
 import org.apache.fineract.infrastructure.survey.service.PovertyLineService;
 import org.springframework.stereotype.Component;
+import io.swagger.v3.oas.annotations.Parameter;
 
 @Path("/v1/povertyLine")
 @Component

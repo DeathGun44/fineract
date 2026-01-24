@@ -445,8 +445,8 @@ public class SavingsAccountsApiResource {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @RequestBody(description = "Upload savings template", content = {
             @Content(mediaType = MediaType.MULTIPART_FORM_DATA, schema = @Schema(implementation = UploadRequest.class)) })
-    public String postSavingsTemplate(@FormDataParam("file") InputStream uploadedInputStream,
-            @FormDataParam("file") FormDataContentDisposition fileDetail, @FormDataParam("locale") final String locale,
+    public String postSavingsTemplate(@Parameter(hidden = true) @FormDataParam("file") InputStream uploadedInputStream,
+            @Parameter(hidden = true) @FormDataParam("file") FormDataContentDisposition fileDetail, @Parameter(hidden = true) @FormDataParam("locale") final String locale,
             @FormDataParam("dateFormat") final String dateFormat) {
         final Long importDocumentId = bulkImportWorkbookService.importWorkbook(GlobalEntityType.SAVINGS_ACCOUNT.toString(),
                 uploadedInputStream, fileDetail, locale, dateFormat);
@@ -466,8 +466,8 @@ public class SavingsAccountsApiResource {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @RequestBody(description = "Upload savings transaction template", content = {
             @Content(mediaType = MediaType.MULTIPART_FORM_DATA, schema = @Schema(implementation = UploadRequest.class)) })
-    public String postSavingsTransactionTemplate(@FormDataParam("file") InputStream uploadedInputStream,
-            @FormDataParam("file") FormDataContentDisposition fileDetail, @FormDataParam("locale") final String locale,
+    public String postSavingsTransactionTemplate(@Parameter(hidden = true) @FormDataParam("file") InputStream uploadedInputStream,
+            @Parameter(hidden = true) @FormDataParam("file") FormDataContentDisposition fileDetail, @FormDataParam("locale") final String locale,
             @FormDataParam("dateFormat") final String dateFormat) {
         final Long importDocumentId = bulkImportWorkbookService.importWorkbook(GlobalEntityType.SAVINGS_TRANSACTIONS.toString(),
                 uploadedInputStream, fileDetail, locale, dateFormat);

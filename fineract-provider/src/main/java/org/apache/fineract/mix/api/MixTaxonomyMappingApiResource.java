@@ -36,6 +36,7 @@ import org.apache.fineract.mix.data.MixTaxonomyMappingData;
 import org.apache.fineract.mix.data.MixTaxonomyRequest;
 import org.apache.fineract.mix.service.MixTaxonomyMappingReadPlatformService;
 import org.springframework.stereotype.Component;
+import io.swagger.v3.oas.annotations.Parameter;
 
 @Path("/v1/mixmapping")
 @Component

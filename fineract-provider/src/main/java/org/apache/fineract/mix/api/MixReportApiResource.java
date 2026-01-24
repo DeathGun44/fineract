@@ -30,6 +30,7 @@ import org.apache.fineract.mix.data.XBRLData;
 import org.apache.fineract.mix.service.XBRLBuilder;
 import org.apache.fineract.mix.service.XBRLResultService;
 import org.springframework.stereotype.Component;
+import io.swagger.v3.oas.annotations.Parameter;
 
 @Path("/v1/mixreport")
 @Component

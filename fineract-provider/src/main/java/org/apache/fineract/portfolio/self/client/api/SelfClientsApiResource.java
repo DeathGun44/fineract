@@ -242,8 +242,8 @@ public class SelfClientsApiResource {
     @RequestBody(description = "Add new client image", content = {
             @Content(mediaType = MediaType.MULTIPART_FORM_DATA, schema = @Schema(implementation = UploadRequest.class)) })
     public CommandProcessingResult addNewClientImage(@PathParam("clientId") final Long clientId,
-            @HeaderParam("Content-Length") final Long fileSize, @FormDataParam("file") final InputStream inputStream,
-            @FormDataParam("file") final FormDataContentDisposition fileDetails, @FormDataParam("file") final FormDataBodyPart bodyPart) {
+            @HeaderParam("Content-Length") final Long fileSize, @Parameter(hidden = true) @FormDataParam("file") final InputStream inputStream,
+            @Parameter(hidden = true) @FormDataParam("file") final FormDataContentDisposition fileDetails, @Parameter(hidden = true) @FormDataParam("file") final FormDataBodyPart bodyPart) {
 
         validateAppuserClientsMapping(clientId);
         return this.imagesApiResource.addNewClientImage(ClientApiConstants.clientEntityName, clientId, fileSize, inputStream, fileDetails,

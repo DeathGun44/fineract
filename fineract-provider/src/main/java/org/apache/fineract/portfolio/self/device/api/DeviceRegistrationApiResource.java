@@ -44,6 +44,7 @@ import org.apache.fineract.portfolio.self.device.service.DeviceRegistrationReadP
 import org.apache.fineract.portfolio.self.device.service.DeviceRegistrationWritePlatformService;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
+import io.swagger.v3.oas.annotations.Parameter;
 
 @Path("/v1/self/device/registration")
 @Component

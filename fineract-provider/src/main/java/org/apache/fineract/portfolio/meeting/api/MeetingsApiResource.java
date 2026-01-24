@@ -64,6 +64,7 @@ import org.apache.fineract.portfolio.meeting.data.MeetingData;
 import org.apache.fineract.portfolio.meeting.exception.MeetingNotSupportedResourceException;
 import org.apache.fineract.portfolio.meeting.service.MeetingReadPlatformService;
 import org.springframework.stereotype.Component;
+import io.swagger.v3.oas.annotations.Parameter;
 
 @Path("/v1/{entityType}/{entityId}/meetings")
 @Component

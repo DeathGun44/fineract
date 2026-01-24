@@ -52,6 +52,7 @@ import org.apache.fineract.infrastructure.creditbureau.service.CreditBureauReadP
 import org.apache.fineract.infrastructure.creditbureau.service.OrganisationCreditBureauReadPlatformService;
 import org.apache.fineract.infrastructure.security.service.PlatformSecurityContext;
 import org.springframework.stereotype.Component;
+import io.swagger.v3.oas.annotations.Parameter;
 
 @Path("/v1/CreditBureauConfiguration")
 @Component

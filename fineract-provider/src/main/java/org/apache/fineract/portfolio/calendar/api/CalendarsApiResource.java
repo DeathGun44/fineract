@@ -63,6 +63,7 @@ import org.apache.fineract.portfolio.calendar.service.CalendarDropdownReadPlatfo
 import org.apache.fineract.portfolio.calendar.service.CalendarReadPlatformService;
 import org.apache.fineract.portfolio.calendar.service.CalendarUtils;
 import org.springframework.stereotype.Component;
+import io.swagger.v3.oas.annotations.Parameter;
 
 @Path("/v1/{entityType}/{entityId}/calendars")
 @Component

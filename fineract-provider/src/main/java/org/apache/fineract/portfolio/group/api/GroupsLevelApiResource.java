@@ -30,6 +30,7 @@ import org.apache.fineract.infrastructure.security.service.PlatformSecurityConte
 import org.apache.fineract.portfolio.group.data.GroupLevelData;
 import org.apache.fineract.portfolio.group.service.GroupLevelReadPlatformService;
 import org.springframework.stereotype.Component;
+import io.swagger.v3.oas.annotations.Parameter;
 
 @Path("/v1/grouplevels")
 @Component

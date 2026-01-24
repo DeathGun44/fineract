@@ -46,6 +46,7 @@ import org.apache.fineract.portfolio.shareaccounts.service.ShareAccountDividendR
 import org.apache.fineract.portfolio.shareproducts.data.ShareProductDividendPayOutData;
 import org.apache.fineract.portfolio.shareproducts.service.ShareProductDividendReadPlatformService;
 import org.springframework.stereotype.Component;
+import io.swagger.v3.oas.annotations.Parameter;
 
 @Path("/v1/shareproduct/{productId}/dividend")
 @Component
