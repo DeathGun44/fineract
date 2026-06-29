@@ -813,4 +813,35 @@ public abstract class FeignLoanTestBase extends FeignIntegrationTest implements 
         assertEquals(principalPaid, Utils.getDoubleValue(loanDetails.getSummary().getPrincipalPaid()));
         assertEquals(totalOverpaid, Utils.getDoubleValue(loanDetails.getTotalOverpaid()));
     }
+
+    protected Long reAmortizeLoan(Long loanId, String reAmortizationInterestHandling) {
+        PostLoansLoanIdTransactionsResponse response = transactionHelper.reAmortize(loanId,
+                LoanRequestBuilders.reAmortize(reAmortizationInterestHandling));
+        return response.getResourceId();
+    }
+
+    protected void undoReAmortizeLoan(Long loanId) {
+        transactionHelper.undoReAmortize(loanId, new PostLoansLoanIdTransactionsRequest());
+    }
+
+    protected PostLoansLoanIdTransactionsResponse writeOffLoan(Long loanId, PostLoansLoanIdTransactionsRequest request) {
+        return transactionHelper.writeOff(loanId, request);
+    }
+
+    protected PostLoansLoanIdTransactionsResponse writeOffLoan(String loanExternalId, PostLoansLoanIdTransactionsRequest request) {
+        return transactionHelper.writeOff(loanExternalId, request);
+    }
+
+    protected PostLoansLoanIdTransactionsResponse writeOffLoan(Long loanId, String date) {
+        return writeOffLoan(loanId, LoanRequestBuilders.writeOff(date));
+    }
+
+    protected Long applyAndApproveCumulativeLoan(Long clientId, Long productId, String date, Double amount, Double interestRate,
+            int numberOfRepayments, Consumer<PostLoansRequest> customizer) {
+        PostLoansRequest request = LoanRequestBuilders.applyCumulativeLoanRequest(clientId, productId, date, amount, interestRate,
+                numberOfRepayments, customizer);
+        Long loanId = applyForLoan(request);
+        approveLoan(loanId, LoanRequestBuilders.approveLoan(amount, date));
+        return loanId;
+    }
 }

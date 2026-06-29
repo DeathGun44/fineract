@@ -24,6 +24,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import org.apache.fineract.client.models.AdvancedPaymentData;
+import org.apache.fineract.client.models.CreditAllocationData;
+import org.apache.fineract.client.models.CreditAllocationOrder;
 import org.apache.fineract.client.models.PaymentAllocationOrder;
 import org.apache.fineract.client.models.PostCreateRescheduleLoansRequest;
 import org.apache.fineract.client.models.PostLoansLoanIdChargesChargeIdRequest;
@@ -232,14 +234,63 @@ public final class LoanRequestBuilders {
         AdvancedPaymentData data = new AdvancedPaymentData();
         data.setTransactionType(transactionType);
         data.setFutureInstallmentAllocationRule(futureInstallmentAllocationRule);
+        data.setPaymentAllocationOrder(defaultPaymentAllocationOrder());
+        return data;
+    }
+
+    public static AdvancedPaymentData paymentAllocation(String transactionType, String futureInstallmentAllocationRule,
+            String... paymentAllocationRules) {
+        AdvancedPaymentData data = new AdvancedPaymentData();
+        data.setTransactionType(transactionType);
+        data.setFutureInstallmentAllocationRule(futureInstallmentAllocationRule);
         AtomicInteger order = new AtomicInteger(1);
-        List<PaymentAllocationOrder> orders = Stream
+        List<PaymentAllocationOrder> orders = Stream.of(paymentAllocationRules)
+                .map(rule -> new PaymentAllocationOrder().paymentAllocationRule(rule).order(order.getAndIncrement())).toList();
+        data.setPaymentAllocationOrder(orders);
+        return data;
+    }
+
+    public static List<PaymentAllocationOrder> defaultPaymentAllocationOrder() {
+        AtomicInteger order = new AtomicInteger(1);
+        return Stream
                 .of("PAST_DUE_PENALTY", "PAST_DUE_FEE", "PAST_DUE_PRINCIPAL", "PAST_DUE_INTEREST", "DUE_PENALTY", "DUE_FEE",
                         "DUE_PRINCIPAL", "DUE_INTEREST", "IN_ADVANCE_PENALTY", "IN_ADVANCE_FEE", "IN_ADVANCE_PRINCIPAL",
                         "IN_ADVANCE_INTEREST")
                 .map(rule -> new PaymentAllocationOrder().paymentAllocationRule(rule).order(order.getAndIncrement())).toList();
-        data.setPaymentAllocationOrder(orders);
+    }
+
+    public static CreditAllocationData creditAllocation(String transactionType, String... creditAllocationRules) {
+        CreditAllocationData data = new CreditAllocationData();
+        data.setTransactionType(transactionType);
+        AtomicInteger order = new AtomicInteger(1);
+        List<CreditAllocationOrder> orders = Stream.of(creditAllocationRules)
+                .map(rule -> new CreditAllocationOrder().creditAllocationRule(rule).order(order.getAndIncrement())).toList();
+        data.setCreditAllocationOrder(orders);
         return data;
+    }
+
+    public static PostLoansLoanIdTransactionsRequest reAmortize(String reAmortizationInterestHandling) {
+        PostLoansLoanIdTransactionsRequest request = new PostLoansLoanIdTransactionsRequest();
+        request.setReAmortizationInterestHandling(reAmortizationInterestHandling);
+        request.setLocale(LoanTestData.LOCALE);
+        request.setDateFormat(LoanTestData.DATETIME_PATTERN);
+        return request;
+    }
+
+    public static PostLoansLoanIdTransactionsRequest writeOff(String transactionDate) {
+        return new PostLoansLoanIdTransactionsRequest()//
+                .transactionDate(transactionDate)//
+                .locale(LoanTestData.LOCALE)//
+                .dateFormat(LoanTestData.DATETIME_PATTERN);
+    }
+
+    public static PostLoansRequest applyCumulativeLoanRequest(Long clientId, Long productId, String submittedOnDate, Double principal,
+            Double interestRate, int numberOfRepayments, Consumer<PostLoansRequest> customizer) {
+        PostLoansRequest request = applyCumulativeLoan(clientId, productId, submittedOnDate, principal, numberOfRepayments, interestRate);
+        if (customizer != null) {
+            customizer.accept(request);
+        }
+        return request;
     }
 
     public static PostLoansLoanIdRequest rejectLoan(String rejectedOnDate) {

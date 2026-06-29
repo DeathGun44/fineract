@@ -184,4 +184,20 @@ public class FeignTransactionHelper {
         return ok(() -> fineractClient.loanTransactions().adjustLoanTransaction(loanId, targetTransactionId, request,
                 Map.of("command", "interest-refund")));
     }
+
+    public PostLoansLoanIdTransactionsResponse reAmortize(Long loanId, PostLoansLoanIdTransactionsRequest request) {
+        return ok(() -> fineractClient.loanTransactions().executeLoanTransaction(loanId, request, Map.of("command", "reAmortize")));
+    }
+
+    public PostLoansLoanIdTransactionsResponse undoReAmortize(Long loanId, PostLoansLoanIdTransactionsRequest request) {
+        return ok(() -> fineractClient.loanTransactions().executeLoanTransaction(loanId, request, Map.of("command", "undoReAmortize")));
+    }
+
+    public PostLoansLoanIdTransactionsResponse writeOff(Long loanId, PostLoansLoanIdTransactionsRequest request) {
+        return ok(() -> fineractClient.loanTransactions().executeLoanTransaction(loanId, request, Map.of("command", "writeoff")));
+    }
+
+    public PostLoansLoanIdTransactionsResponse writeOff(String loanExternalId, PostLoansLoanIdTransactionsRequest request) {
+        return ok(() -> fineractClient.loanTransactions().executeLoanTransactionByLoanExternalId(loanExternalId, request, "writeoff"));
+    }
 }
