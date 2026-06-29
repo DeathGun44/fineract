@@ -18,8 +18,16 @@
  */
 package org.apache.fineract.integrationtests.client.feign.modules;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.gson.Gson;
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -28,8 +36,10 @@ import org.apache.fineract.client.models.CreditAllocationData;
 import org.apache.fineract.client.models.CreditAllocationOrder;
 import org.apache.fineract.client.models.PaymentAllocationOrder;
 import org.apache.fineract.client.models.PostCreateRescheduleLoansRequest;
+import org.apache.fineract.client.models.PostLoansDisbursementData;
 import org.apache.fineract.client.models.PostLoansLoanIdChargesChargeIdRequest;
 import org.apache.fineract.client.models.PostLoansLoanIdChargesRequest;
+import org.apache.fineract.client.models.PostLoansLoanIdDisbursementData;
 import org.apache.fineract.client.models.PostLoansLoanIdRequest;
 import org.apache.fineract.client.models.PostLoansLoanIdTransactionsRequest;
 import org.apache.fineract.client.models.PostLoansRequest;
@@ -118,6 +128,55 @@ public final class LoanRequestBuilders {
                 .dateFormat(LoanTestData.DATETIME_PATTERN);
     }
 
+    public static String disburseLoanWithRepaymentRescheduleJson(String disbursedOnDate, String adjustRepaymentDate) {
+        Map<String, String> map = new LinkedHashMap<>();
+        map.put("locale", LoanTestData.LOCALE);
+        map.put("dateFormat", LoanTestData.DATETIME_PATTERN);
+        map.put("actualDisbursementDate", disbursedOnDate);
+        map.put("adjustRepaymentDate", adjustRepaymentDate);
+        map.put("note", "DISBURSE NOTE");
+        return GSON.toJson(map);
+    }
+
+    public static PostLoansDisbursementData applyTrancheDetail(String expectedDisbursementDate, double principal) {
+        return new PostLoansDisbursementData()//
+                .expectedDisbursementDate(expectedDisbursementDate)//
+                .principal(BigDecimal.valueOf(principal));
+    }
+
+    public static PostLoansLoanIdDisbursementData approveTrancheDetail(String expectedDisbursementDate, double principal) {
+        return new PostLoansLoanIdDisbursementData()//
+                .expectedDisbursementDate(parseDate(expectedDisbursementDate))//
+                .principal(BigDecimal.valueOf(principal));
+    }
+
+    public static PostLoansLoanIdRequest approveLoanWithTranches(Double approvedAmount, String approvedOnDate,
+            String expectedDisbursementDate, List<PostLoansLoanIdDisbursementData> tranches) {
+        return approveLoan(approvedAmount, approvedOnDate, expectedDisbursementDate)//
+                .disbursementData(tranches);
+    }
+
+    public static String approveLoanWithTranchesJson(Double approvedAmount, String approvedOnDate, String expectedDisbursementDate,
+            List<PostLoansDisbursementData> tranches) {
+        Map<String, Object> map = new LinkedHashMap<>();
+        map.put("approvedLoanAmount", approvedAmount.toString());
+        map.put("approvedOnDate", approvedOnDate);
+        map.put("expectedDisbursementDate", expectedDisbursementDate);
+        map.put("locale", LoanTestData.LOCALE);
+        map.put("dateFormat", LoanTestData.DATETIME_PATTERN);
+        map.put("disbursementData", tranches.stream().map(tranche -> {
+            Map<String, String> trancheMap = new LinkedHashMap<>();
+            trancheMap.put("expectedDisbursementDate", tranche.getExpectedDisbursementDate());
+            trancheMap.put("principal", tranche.getPrincipal().toPlainString());
+            return trancheMap;
+        }).toList());
+        return GSON.toJson(map);
+    }
+
+    private static LocalDate parseDate(String date) {
+        return LocalDate.parse(date, DateTimeFormatter.ofPattern(LoanTestData.DATETIME_PATTERN, Locale.ENGLISH));
+    }
+
     public static PostLoansLoanIdTransactionsRequest repayLoan(Double amount, String transactionDate) {
         PostLoansLoanIdTransactionsRequest request = new PostLoansLoanIdTransactionsRequest();
         request.setTransactionDate(transactionDate);
@@ -184,6 +243,74 @@ public final class LoanRequestBuilders {
                 .dateFormat(LoanTestData.DATETIME_PATTERN);
     }
 
+    public static PostCreateRescheduleLoansRequest rescheduleWithExtraTerms(Long loanId, String submittedOnDate,
+            String rescheduleFromDate, Integer extraTerms) {
+        return new PostCreateRescheduleLoansRequest()//
+                .loanId(loanId)//
+                .submittedOnDate(submittedOnDate)//
+                .rescheduleFromDate(rescheduleFromDate)//
+                .extraTerms(extraTerms)//
+                .rescheduleReasonId(1L)//
+                .locale(LoanTestData.LOCALE)//
+                .dateFormat(LoanTestData.DATETIME_PATTERN);
+    }
+
+    /**
+     * Reschedule request with {@code recalculateInterest=true}. The generated OpenAPI model omits this field; the
+     * subclass ensures Gson serializes it for Feign calls.
+     */
+    public static PostCreateRescheduleLoansRequest rescheduleWithRecalculateInterest(Long loanId, String submittedOnDate,
+            String rescheduleFromDate, String adjustedDueDate) {
+        return withRecalculateInterest(rescheduleRequest(loanId, submittedOnDate, rescheduleFromDate, adjustedDueDate), true);
+    }
+
+    public static PostCreateRescheduleLoansRequest rescheduleWithFixedEmiAndRecalculateInterest(Long loanId, String submittedOnDate,
+            String rescheduleFromDate, String adjustedDueDate, BigDecimal emi, String emiEndDate) {
+        RescheduleRequestWithRecalculateInterest request = withRecalculateInterest(
+                rescheduleRequest(loanId, submittedOnDate, rescheduleFromDate, adjustedDueDate), true);
+        request.setEmi(emi);
+        request.setEndDate(emiEndDate);
+        return request;
+    }
+
+    private static RescheduleRequestWithRecalculateInterest withRecalculateInterest(PostCreateRescheduleLoansRequest base,
+            boolean recalculateInterest) {
+        RescheduleRequestWithRecalculateInterest request = new RescheduleRequestWithRecalculateInterest();
+        request.setAdjustedDueDate(base.getAdjustedDueDate());
+        request.setDateFormat(base.getDateFormat());
+        request.setEmi(base.getEmi());
+        request.setEndDate(base.getEndDate());
+        request.setExtraTerms(base.getExtraTerms());
+        request.setGraceOnInterest(base.getGraceOnInterest());
+        request.setGraceOnPrincipal(base.getGraceOnPrincipal());
+        request.setLoanId(base.getLoanId());
+        request.setLocale(base.getLocale());
+        request.setNewInterestRate(base.getNewInterestRate());
+        request.setRescheduleFromDate(base.getRescheduleFromDate());
+        request.setRescheduleReasonComment(base.getRescheduleReasonComment());
+        request.setRescheduleReasonId(base.getRescheduleReasonId());
+        request.setSubmittedOnDate(base.getSubmittedOnDate());
+        request.setRecalculateInterest(recalculateInterest);
+        return request;
+    }
+
+    /**
+     * Extends {@link PostCreateRescheduleLoansRequest} so {@code recalculateInterest} is included in JSON payloads.
+     */
+    public static final class RescheduleRequestWithRecalculateInterest extends PostCreateRescheduleLoansRequest {
+
+        @JsonProperty("recalculateInterest")
+        private Boolean recalculateInterest;
+
+        public Boolean getRecalculateInterest() {
+            return recalculateInterest;
+        }
+
+        public void setRecalculateInterest(Boolean recalculateInterest) {
+            this.recalculateInterest = recalculateInterest;
+        }
+    }
+
     /**
      * Creates a reAge request for non-interest-bearing loans (no interest handling needed).
      */
@@ -201,6 +328,11 @@ public final class LoanRequestBuilders {
      */
     public static PostLoansLoanIdTransactionsRequest reAge(String startDate, String frequencyType, Integer frequencyNumber,
             Integer numberOfInstallments, String reAgeInterestHandling) {
+        return reAge(startDate, frequencyType, frequencyNumber, numberOfInstallments, reAgeInterestHandling, null);
+    }
+
+    public static PostLoansLoanIdTransactionsRequest reAge(String startDate, String frequencyType, Integer frequencyNumber,
+            Integer numberOfInstallments, String reAgeInterestHandling, Double transactionAmount) {
         PostLoansLoanIdTransactionsRequest request = new PostLoansLoanIdTransactionsRequest();
         request.setStartDate(startDate);
         request.setFrequencyType(frequencyType);
@@ -208,6 +340,9 @@ public final class LoanRequestBuilders {
         request.setNumberOfInstallments(numberOfInstallments);
         if (reAgeInterestHandling != null) {
             request.setReAgeInterestHandling(reAgeInterestHandling);
+        }
+        if (transactionAmount != null) {
+            request.transactionAmount(transactionAmount);
         }
         request.setLocale(LoanTestData.LOCALE);
         request.setDateFormat(LoanTestData.DATETIME_PATTERN);
@@ -435,5 +570,49 @@ public final class LoanRequestBuilders {
             customizer.accept(request);
         }
         return request;
+    }
+
+    private static final Gson GSON = new Gson();
+
+    public static ApplyLoanWithLegacyDates applyLoanWithLegacyDates(PostLoansRequest base, String interestChargedFromDate,
+            String repaymentsStartingFromDate) {
+        ApplyLoanWithLegacyDates request = GSON.fromJson(GSON.toJson(base), ApplyLoanWithLegacyDates.class);
+        request.setInterestChargedFromDate(interestChargedFromDate);
+        request.setRepaymentsStartingFromDateForApply(repaymentsStartingFromDate);
+        return request;
+    }
+
+    /**
+     * Carries legacy string date fields omitted from the OpenAPI loan apply model.
+     */
+    public static final class ApplyLoanWithLegacyDates extends PostLoansRequest {
+
+        @JsonProperty("interestChargedFromDate")
+        private String interestChargedFromDate;
+
+        private String repaymentsStartingFromDateForApply;
+
+        public String getInterestChargedFromDate() {
+            return interestChargedFromDate;
+        }
+
+        public void setInterestChargedFromDate(String interestChargedFromDate) {
+            this.interestChargedFromDate = interestChargedFromDate;
+        }
+
+        public void setRepaymentsStartingFromDateForApply(String repaymentsStartingFromDateForApply) {
+            this.repaymentsStartingFromDateForApply = repaymentsStartingFromDateForApply;
+        }
+
+        @Override
+        @JsonIgnore
+        public LocalDate getRepaymentsStartingFromDate() {
+            return null;
+        }
+
+        @JsonProperty("repaymentsStartingFromDate")
+        public String getRepaymentsStartingFromDateForApply() {
+            return repaymentsStartingFromDateForApply;
+        }
     }
 }
