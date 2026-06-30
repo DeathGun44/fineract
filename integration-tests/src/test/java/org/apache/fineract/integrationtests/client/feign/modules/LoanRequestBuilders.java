@@ -138,6 +138,15 @@ public final class LoanRequestBuilders {
         return GSON.toJson(map);
     }
 
+    public static String disburseLoanWithNetDisbursalAmountJson(String disbursedOnDate, String netDisbursalAmount) {
+        Map<String, String> map = new LinkedHashMap<>();
+        map.put("locale", LoanTestData.LOCALE);
+        map.put("dateFormat", LoanTestData.DATETIME_PATTERN);
+        map.put("actualDisbursementDate", disbursedOnDate);
+        map.put("netDisbursalAmount", netDisbursalAmount);
+        return GSON.toJson(map);
+    }
+
     public static PostLoansDisbursementData applyTrancheDetail(String expectedDisbursementDate, double principal) {
         return new PostLoansDisbursementData()//
                 .expectedDisbursementDate(expectedDisbursementDate)//
