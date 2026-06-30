@@ -20,6 +20,8 @@ package org.apache.fineract.integrationtests.client.feign;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -32,6 +34,8 @@ import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import org.apache.fineract.client.feign.FineractFeignClient;
+import org.apache.fineract.client.feign.util.CallFailedRuntimeException;
+import org.apache.fineract.client.models.AdvancedPaymentData;
 import org.apache.fineract.client.models.ChargeRequest;
 import org.apache.fineract.client.models.DeleteLoansLoanIdChargesChargeIdResponse;
 import org.apache.fineract.client.models.DisbursementDetail;
@@ -608,6 +612,14 @@ public abstract class FeignLoanTestBase extends FeignIntegrationTest implements 
         transactionHelper.executeInlineCOB(loanId);
     }
 
+    protected void executeInlineCOB(List<Long> loanIds) {
+        transactionHelper.executeInlineCOB(loanIds);
+    }
+
+    protected void addCapitalizedIncome(Long loanId, String transactionDate, double amount) {
+        transactionHelper.addCapitalizedIncome(loanId, transactionDate, amount);
+    }
+
     protected GetLoansLoanIdTransactionsTemplateResponse getPrepaymentAmount(Long loanId, String transactionDate, String dateFormat) {
         return transactionHelper.getPrepaymentAmount(loanId, transactionDate, dateFormat);
     }
@@ -733,6 +745,17 @@ public abstract class FeignLoanTestBase extends FeignIntegrationTest implements 
     protected void verifyTransactions(Long loanId, LoanTestData.TransactionExt... transactions) {
         GetLoansLoanIdResponse loanDetails = ok(() -> fineractClient().loans().retrieveLoan(loanId, false, "all", null, null));
         LoanTestValidators.verifyTransactions(loanDetails, transactions);
+    }
+
+    protected void verifyNoTransactions(Long loanId) {
+        GetLoansLoanIdResponse loanDetails = getLoanDetails(loanId);
+        assertTrue(loanDetails.getTransactions() == null || loanDetails.getTransactions().isEmpty(),
+                "No transaction is expected on loan " + loanId);
+    }
+
+    protected void verifyUndoLastDisbursalShallFail(Long loanId, String expectedError) {
+        CallFailedRuntimeException exception = assertThrows(CallFailedRuntimeException.class, () -> undoLastDisbursement(loanId));
+        assertTrue(exception.getMessage().contains(expectedError));
     }
 
     protected void verifyRepaymentSchedule(Long loanId, LoanTestData.Installment... installments) {
@@ -990,5 +1013,43 @@ public abstract class FeignLoanTestBase extends FeignIntegrationTest implements 
     protected LoanTestData.Installment unpaidInstallment(double principalAmount, double interestAmount, String dueDate) {
         double totalOutstanding = Math.round((principalAmount + interestAmount) * 100.0) / 100.0;
         return installment(principalAmount, interestAmount, totalOutstanding, false, dueDate);
+    }
+
+    protected AdvancedPaymentData createDefaultPaymentAllocation() {
+        return LoanRequestBuilders.defaultPaymentAllocation();
+    }
+
+    protected AdvancedPaymentData createDefaultPaymentAllocation(String futureInstallmentAllocationRule) {
+        return LoanRequestBuilders.paymentAllocation("DEFAULT", futureInstallmentAllocationRule);
+    }
+
+    protected AdvancedPaymentData createPaymentAllocation(String transactionType, String futureInstallmentAllocationRule) {
+        return LoanRequestBuilders.paymentAllocation(transactionType, futureInstallmentAllocationRule);
+    }
+
+    protected List<AdvancedPaymentData> getAdvancedPaymentAllocationRules(Long loanId) {
+        return loanHelper.getAdvancedPaymentAllocationRules(loanId);
+    }
+
+    protected <T> T getLoanProductError(String loanProductJson, String jsonAttributeToGetBack) {
+        return loanHelper.getLoanProductError(loanProductJson, jsonAttributeToGetBack);
+    }
+
+    protected PostLoansLoanIdTransactionsResponse makeRefundByCash(Long loanId, String date, Double amount) {
+        return transactionHelper.makeRefundByCash(loanId, LoanRequestBuilders.repayLoan(amount, date));
+    }
+
+    protected void validateFullyUnpaidRepaymentPeriod(GetLoansLoanIdResponse loanDetails, Integer index, String dueDate,
+            double principalDue, double feeDue, double penaltyDue, double interestDue) {
+        LoanTestValidators.validateFullyUnpaidRepaymentPeriod(loanDetails, index, dueDate, principalDue, feeDue, penaltyDue, interestDue);
+    }
+
+    protected void validateRepaymentPeriod(GetLoansLoanIdResponse loanDetails, Integer index, LocalDate dueDate, double principalDue,
+            double principalPaid, double principalOutstanding, double feeDue, double feePaid, double feeOutstanding, double penaltyDue,
+            double penaltyPaid, double penaltyOutstanding, double interestDue, double interestPaid, double interestOutstanding,
+            double paidInAdvance, double paidLate) {
+        LoanTestValidators.validateRepaymentPeriod(loanDetails, index, dueDate, principalDue, principalPaid, principalOutstanding, feeDue,
+                feePaid, feeOutstanding, penaltyDue, penaltyPaid, penaltyOutstanding, interestDue, interestPaid, interestOutstanding,
+                paidInAdvance, paidLate);
     }
 }
