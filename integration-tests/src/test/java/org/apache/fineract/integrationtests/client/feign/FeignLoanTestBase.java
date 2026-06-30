@@ -390,6 +390,10 @@ public abstract class FeignLoanTestBase extends FeignIntegrationTest implements 
         return transactionHelper.makeLoanDownPayment(loanId, request);
     }
 
+    protected PostLoansLoanIdTransactionsResponse makeLoanDownPayment(String loanExternalId, PostLoansLoanIdTransactionsRequest request) {
+        return transactionHelper.makeLoanDownPayment(loanExternalId, request);
+    }
+
     protected GetLoansLoanIdTransactionsTransactionIdResponse getLoanTransaction(Long loanId, Long transactionId) {
         return transactionHelper.getLoanTransaction(loanId, transactionId);
     }
@@ -416,6 +420,11 @@ public abstract class FeignLoanTestBase extends FeignIntegrationTest implements 
 
     protected GetJournalEntriesTransactionIdResponse getJournalEntries(String transactionId) {
         return journalHelper.getJournalEntries(transactionId);
+    }
+
+    protected PostLoansLoanIdTransactionsResponse reverseLoanTransaction(String loanExternalId, String transactionExternalId,
+            PostLoansLoanIdTransactionsTransactionIdRequest request) {
+        return transactionHelper.reverseLoanTransaction(loanExternalId, transactionExternalId, request);
     }
 
     protected PostLoansLoanIdTransactionsResponse reverseLoanTransaction(Long loanId, Long transactionId, String transactionDate) {
