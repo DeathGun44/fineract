@@ -26,6 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -42,8 +43,10 @@ import org.apache.fineract.client.models.DisbursementDetail;
 import org.apache.fineract.client.models.GetJournalEntriesTransactionIdResponse;
 import org.apache.fineract.client.models.GetLoanProductsProductIdResponse;
 import org.apache.fineract.client.models.GetLoansLoanIdChargesChargeIdResponse;
+import org.apache.fineract.client.models.GetLoansLoanIdChargesTemplateResponse;
 import org.apache.fineract.client.models.GetLoansLoanIdResponse;
 import org.apache.fineract.client.models.GetLoansLoanIdStatus;
+import org.apache.fineract.client.models.GetLoansLoanIdTransactionsResponse;
 import org.apache.fineract.client.models.GetLoansLoanIdTransactionsTemplateResponse;
 import org.apache.fineract.client.models.GetLoansLoanIdTransactionsTransactionIdResponse;
 import org.apache.fineract.client.models.LoanScheduleData;
@@ -62,15 +65,24 @@ import org.apache.fineract.client.models.PostLoansLoanIdTransactionsResponse;
 import org.apache.fineract.client.models.PostLoansLoanIdTransactionsTransactionIdRequest;
 import org.apache.fineract.client.models.PostLoansRequest;
 import org.apache.fineract.client.models.PostUpdateRescheduleLoansRequest;
+import org.apache.fineract.client.models.PutChargeTransactionChangesResponse;
 import org.apache.fineract.client.models.PutGlobalConfigurationsRequest;
 import org.apache.fineract.client.models.PutLoanProductsProductIdRequest;
 import org.apache.fineract.client.models.PutLoanProductsProductIdResponse;
+import org.apache.fineract.client.models.PutLoansApprovedAmountResponse;
+import org.apache.fineract.client.models.PutLoansAvailableDisbursementAmountResponse;
+import org.apache.fineract.client.models.PutLoansLoanIdChargesChargeIdRequest;
+import org.apache.fineract.client.models.PutLoansLoanIdChargesChargeIdResponse;
+import org.apache.fineract.client.models.PutLoansLoanIdRequest;
+import org.apache.fineract.client.models.PutLoansLoanIdResponse;
+import org.apache.fineract.client.models.TransactionType;
 import org.apache.fineract.integrationtests.client.FeignIntegrationTest;
 import org.apache.fineract.integrationtests.client.feign.helpers.FeignAccountHelper;
 import org.apache.fineract.integrationtests.client.feign.helpers.FeignBusinessDateHelper;
 import org.apache.fineract.integrationtests.client.feign.helpers.FeignChargesHelper;
 import org.apache.fineract.integrationtests.client.feign.helpers.FeignClientHelper;
 import org.apache.fineract.integrationtests.client.feign.helpers.FeignCodeHelper;
+import org.apache.fineract.integrationtests.client.feign.helpers.FeignExternalEventHelper;
 import org.apache.fineract.integrationtests.client.feign.helpers.FeignGlobalConfigurationHelper;
 import org.apache.fineract.integrationtests.client.feign.helpers.FeignJournalEntryHelper;
 import org.apache.fineract.integrationtests.client.feign.helpers.FeignLoanHelper;
@@ -95,6 +107,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 public abstract class FeignLoanTestBase extends FeignIntegrationTest implements LoanProductTemplates {
 
     protected static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(LoanTestData.DATETIME_PATTERN, Locale.ENGLISH);
+    protected static final String DATETIME_PATTERN = LoanTestData.DATETIME_PATTERN;
 
     protected static FeignAccountHelper accountHelper;
     protected static FeignLoanHelper loanHelper;
@@ -106,6 +119,7 @@ public abstract class FeignLoanTestBase extends FeignIntegrationTest implements 
     protected static FeignCodeHelper codeHelper;
     protected static FeignGlobalConfigurationHelper globalConfigurationHelper;
     protected static FeignSchedulerHelper schedulerHelper;
+    protected static FeignExternalEventHelper externalEventHelper;
     protected static LoanTestAccounts accounts;
 
     @BeforeAll
@@ -121,6 +135,7 @@ public abstract class FeignLoanTestBase extends FeignIntegrationTest implements 
         codeHelper = new FeignCodeHelper(client);
         globalConfigurationHelper = new FeignGlobalConfigurationHelper(client);
         schedulerHelper = new FeignSchedulerHelper(client);
+        externalEventHelper = new FeignExternalEventHelper(client);
     }
 
     protected LoanTestAccounts getAccounts() {
@@ -214,6 +229,10 @@ public abstract class FeignLoanTestBase extends FeignIntegrationTest implements 
         loanHelper.undoLastDisbursement(loanId, new PostLoansLoanIdRequest());
     }
 
+    protected void undoLastDisbursement(Long loanId, PostLoansLoanIdRequest request) {
+        loanHelper.undoLastDisbursement(loanId, request);
+    }
+
     protected PostLoansLoanIdResponse disburseToSavings(Long loanId, PostLoansLoanIdRequest request) {
         return loanHelper.disburseToSavings(loanId, request);
     }
@@ -236,6 +255,10 @@ public abstract class FeignLoanTestBase extends FeignIntegrationTest implements 
 
     protected PostLoansLoanIdTransactionsResponse forecloseLoan(Long loanId, PostLoansLoanIdTransactionsRequest request) {
         return loanHelper.forecloseLoan(loanId, request);
+    }
+
+    protected PostLoansLoanIdTransactionsResponse forecloseLoan(String loanExternalId, PostLoansLoanIdTransactionsRequest request) {
+        return transactionHelper.forecloseLoan(loanExternalId, request);
     }
 
     protected PostLoansLoanIdChargesResponse addLoanCharge(Long loanId, PostLoansLoanIdChargesRequest request) {
@@ -265,6 +288,10 @@ public abstract class FeignLoanTestBase extends FeignIntegrationTest implements 
 
     protected DeleteLoansLoanIdChargesChargeIdResponse deleteLoanCharge(Long loanId, Long loanChargeId) {
         return loanHelper.deleteLoanCharge(loanId, loanChargeId);
+    }
+
+    protected DeleteLoansLoanIdChargesChargeIdResponse deleteLoanCharge(Long loanId, String loanChargeExternalId) {
+        return loanHelper.deleteLoanCharge(loanId, loanChargeExternalId);
     }
 
     protected PostLoansLoanIdChargesChargeIdResponse waiveLoanCharge(Long loanId, Long loanChargeId,
@@ -323,8 +350,16 @@ public abstract class FeignLoanTestBase extends FeignIntegrationTest implements 
         return transactionHelper.makePayoutRefund(loanId, request);
     }
 
+    protected PostLoansLoanIdTransactionsResponse makePayoutRefund(String loanExternalId, PostLoansLoanIdTransactionsRequest request) {
+        return transactionHelper.makePayoutRefund(loanExternalId, request);
+    }
+
     protected PostLoansLoanIdTransactionsResponse makeGoodwillCredit(Long loanId, PostLoansLoanIdTransactionsRequest request) {
         return transactionHelper.makeGoodwillCredit(loanId, request);
+    }
+
+    protected PostLoansLoanIdTransactionsResponse makeGoodwillCredit(String loanExternalId, PostLoansLoanIdTransactionsRequest request) {
+        return transactionHelper.makeGoodwillCredit(loanExternalId, request);
     }
 
     protected PostLoansLoanIdTransactionsResponse makeInterestPaymentWaiver(Long loanId, PostLoansLoanIdTransactionsRequest request) {
@@ -434,6 +469,11 @@ public abstract class FeignLoanTestBase extends FeignIntegrationTest implements 
     protected PostLoansLoanIdTransactionsResponse reverseLoanTransaction(Long loanId, Long transactionId,
             PostLoansLoanIdTransactionsTransactionIdRequest request) {
         return transactionHelper.reverseLoanTransaction(loanId, transactionId, request);
+    }
+
+    protected PostLoansLoanIdTransactionsResponse reverseLoanTransaction(Long loanId, String transactionExternalId,
+            PostLoansLoanIdTransactionsTransactionIdRequest request) {
+        return transactionHelper.reverseLoanTransaction(loanId, transactionExternalId, request);
     }
 
     protected PostLoansLoanIdTransactionsResponse makeCreditBalanceRefund(Long loanId, PostLoansLoanIdTransactionsRequest request) {
@@ -627,6 +667,360 @@ public abstract class FeignLoanTestBase extends FeignIntegrationTest implements 
 
     protected void addCapitalizedIncome(Long loanId, String transactionDate, double amount) {
         transactionHelper.addCapitalizedIncome(loanId, transactionDate, amount);
+    }
+
+    protected PostLoansLoanIdTransactionsResponse addCapitalizedIncomeTransaction(Long loanId, String transactionDate, double amount) {
+        return transactionHelper.addCapitalizedIncome(loanId, transactionDate, amount);
+    }
+
+    protected PutLoansApprovedAmountResponse modifyLoanApprovedAmount(Long loanId, BigDecimal approvedAmount) {
+        return loanHelper.modifyApprovedAmount(loanId, approvedAmount);
+    }
+
+    protected List<org.apache.fineract.client.models.LoanApprovedAmountHistoryData> getLoanApprovedAmountHistory(Long loanId) {
+        return loanHelper.getLoanApprovedAmountHistory(loanId);
+    }
+
+    protected PutLoansAvailableDisbursementAmountResponse modifyLoanAvailableDisbursementAmount(Long loanId, BigDecimal amount) {
+        return loanHelper.modifyAvailableDisbursementAmount(loanId,
+                new org.apache.fineract.client.models.PutLoansAvailableDisbursementAmountRequest().amount(amount).locale("en"));
+    }
+
+    protected PostLoansLoanIdResponse undoDisbursement(Long loanId, PostLoansLoanIdRequest request) {
+        return loanHelper.undoDisbursement(loanId, request);
+    }
+
+    protected void verifyBusinessEvents(org.apache.fineract.integrationtests.common.externalevents.BusinessEvent... businessEvents) {
+        org.junit.jupiter.api.Assertions.assertNotNull(businessEvents);
+        org.awaitility.Awaitility.await().atMost(java.time.Duration.ofSeconds(30)).pollInterval(java.time.Duration.ofMillis(500))
+                .untilAsserted(() -> {
+                    List<org.apache.fineract.infrastructure.event.external.data.ExternalEventResponse> allExternalEvents = externalEventHelper
+                            .getAllExternalEvents();
+                    org.junit.jupiter.api.Assertions.assertNotNull(allExternalEvents);
+                    org.junit.jupiter.api.Assertions.assertTrue(businessEvents.length <= allExternalEvents.size(),
+                            "Expected business event count is less than actual. Expected: " + businessEvents.length + " Actual: "
+                                    + allExternalEvents.size());
+                    for (org.apache.fineract.integrationtests.common.externalevents.BusinessEvent businessEvent : businessEvents) {
+                        long count = allExternalEvents.stream()
+                                .filter(externalEvent -> businessEvent.verify(externalEvent, dateTimeFormatter)).count();
+                        org.junit.jupiter.api.Assertions.assertEquals(1, count, "Expected business event not found " + businessEvent);
+                    }
+                });
+    }
+
+    protected Integer getLoanProductId(String loanProductJson) {
+        return createLoanProductFromJson(loanProductJson).intValue();
+    }
+
+    protected HashMap<String, Object> applyForLoanApplication(Integer clientId, Integer loanProductId, String externalId) {
+        return applyForLoanApplication(clientId, loanProductId, externalId, null);
+    }
+
+    protected HashMap<String, Object> applyForLoanApplication(Integer clientId, Integer loanProductId, String externalId,
+            String linkAccountId) {
+        final String loanApplicationJSON = new org.apache.fineract.integrationtests.common.loans.LoanApplicationTestBuilder()
+                .withPrincipal("1000").withLoanTermFrequency("1").withLoanTermFrequencyAsMonths().withNumberOfRepayments("1")
+                .withRepaymentEveryAfter("1").withRepaymentFrequencyTypeAsMonths().withInterestRatePerPeriod("0")
+                .withInterestTypeAsDecliningBalance().withAmortizationTypeAsEqualPrincipalPayments()
+                .withInterestCalculationPeriodTypeSameAsRepaymentPeriod().withExpectedDisbursementDate("03 September 2022")
+                .withSubmittedOnDate("01 September 2022").withLoanType("individual").withInArrearsTolerance("1001")
+                .withExternalId(externalId).build(clientId.toString(), loanProductId.toString(), linkAccountId);
+        Long loanId = applyForLoanFromJson(loanApplicationJSON);
+        HashMap<String, Object> result = new HashMap<>();
+        result.put("resourceId", loanId.intValue());
+        result.put("resourceExternalId", getLoanDetails(loanId).getExternalId());
+        return result;
+    }
+
+    protected HashMap<String, Object> getLoanIdFromApplication(String loanApplicationJson) {
+        Long loanId = applyForLoanFromJson(loanApplicationJson);
+        HashMap<String, Object> result = new HashMap<>();
+        result.put("resourceId", loanId.intValue());
+        result.put("resourceExternalId", getLoanDetails(loanId).getExternalId());
+        return result;
+    }
+
+    protected HashMap<String, Object> disburseLoanAsMap(String date, Integer loanId, String transactionAmount, String externalId) {
+        PostLoansLoanIdResponse response = loanHelper.disburseLoanWithExternalId(date, loanId.longValue(), transactionAmount, externalId);
+        HashMap<String, Object> result = new HashMap<>();
+        result.put("subResourceExternalId", response.getSubResourceExternalId());
+        return result;
+    }
+
+    protected HashMap<String, Object> disburseLoanAsMap(String date, Integer loanId, String transactionAmount) {
+        PostLoansLoanIdResponse response = loanHelper.disburseLoan(date, loanId.longValue(), transactionAmount);
+        HashMap<String, Object> result = new HashMap<>();
+        result.put("subResourceExternalId", response.getSubResourceExternalId());
+        return result;
+    }
+
+    protected HashMap<String, Object> disburseLoan(String date, Integer loanId, String transactionAmount, String externalId) {
+        return disburseLoanAsMap(date, loanId, transactionAmount, externalId);
+    }
+
+    protected HashMap<String, Object> disburseLoan(String date, Integer loanId, String transactionAmount) {
+        return disburseLoanAsMap(date, loanId, transactionAmount);
+    }
+
+    protected Long addChargesForLoan(Integer loanId, String chargeJson) {
+        com.google.gson.Gson gson = new com.google.gson.Gson();
+        @SuppressWarnings("unchecked")
+        HashMap<String, Object> chargeMap = gson.fromJson(chargeJson, HashMap.class);
+        PostLoansLoanIdChargesRequest request = new PostLoansLoanIdChargesRequest();
+        if (chargeMap.get("chargeId") != null) {
+            request.chargeId(Long.parseLong(chargeMap.get("chargeId").toString()));
+        }
+        if (chargeMap.get("amount") != null) {
+            request.amount(Double.valueOf(chargeMap.get("amount").toString()));
+        }
+        if (chargeMap.get("dueDate") != null) {
+            request.dueDate(chargeMap.get("dueDate").toString());
+        }
+        if (chargeMap.get("externalId") != null) {
+            request.externalId(chargeMap.get("externalId").toString());
+        }
+        request.dateFormat("dd MMMM yyyy").locale("en");
+        return loanHelper.addChargesForLoan(loanId.longValue(), request);
+    }
+
+    protected PostLoansLoanIdTransactionsResponse makeWriteoff(String loanExternalId, PostLoansLoanIdTransactionsRequest request) {
+        return writeOffLoan(loanExternalId, request);
+    }
+
+    protected GetLoansLoanIdTransactionsTransactionIdResponse getLoanTransactionDetails(String loanExternalId, Long transactionId) {
+        return transactionHelper.getLoanTransactionDetails(loanExternalId, transactionId);
+    }
+
+    protected GetLoansLoanIdTransactionsTransactionIdResponse getLoanTransactionDetails(String loanExternalId,
+            String transactionExternalId) {
+        return transactionHelper.getLoanTransactionDetails(loanExternalId, transactionExternalId);
+    }
+
+    protected PutChargeTransactionChangesResponse undoWaiveLoanCharge(Long loanId, Long transactionId,
+            org.apache.fineract.client.models.PutChargeTransactionChangesRequest request) {
+        return transactionHelper.undoWaiveLoanCharge(loanId, transactionId, request);
+    }
+
+    protected PutChargeTransactionChangesResponse undoWaiveLoanCharge(Long loanId, String transactionExternalId,
+            org.apache.fineract.client.models.PutChargeTransactionChangesRequest request) {
+        return transactionHelper.undoWaiveLoanCharge(loanId, transactionExternalId, request);
+    }
+
+    protected PutChargeTransactionChangesResponse undoWaiveLoanCharge(String loanExternalId, Long transactionId,
+            org.apache.fineract.client.models.PutChargeTransactionChangesRequest request) {
+        return transactionHelper.undoWaiveLoanCharge(loanExternalId, transactionId, request);
+    }
+
+    protected PutChargeTransactionChangesResponse undoWaiveLoanCharge(String loanExternalId, String transactionExternalId,
+            org.apache.fineract.client.models.PutChargeTransactionChangesRequest request) {
+        return transactionHelper.undoWaiveLoanCharge(loanExternalId, transactionExternalId, request);
+    }
+
+    protected PostLoansLoanIdTransactionsResponse makeChargeRefund(String loanExternalId, PostLoansLoanIdTransactionsRequest request) {
+        return transactionHelper.makeChargeRefund(loanExternalId, request);
+    }
+
+    protected PostLoansLoanIdTransactionsResponse makeWaiveInterest(String loanExternalId, PostLoansLoanIdTransactionsRequest request) {
+        return transactionHelper.makeWaiveInterest(loanExternalId, request);
+    }
+
+    protected PostLoansLoanIdTransactionsResponse makeUndoWriteoff(String loanExternalId, PostLoansLoanIdTransactionsRequest request) {
+        return transactionHelper.makeUndoWriteoff(loanExternalId, request);
+    }
+
+    protected PostLoansLoanIdTransactionsResponse makeRecoveryPayment(String loanExternalId, PostLoansLoanIdTransactionsRequest request) {
+        return transactionHelper.makeRecoveryPayment(loanExternalId, request);
+    }
+
+    protected PostLoansLoanIdTransactionsResponse adjustLoanTransaction(String loanExternalId, String transactionExternalId,
+            PostLoansLoanIdTransactionsTransactionIdRequest request) {
+        return transactionHelper.adjustLoanTransaction(loanExternalId, transactionExternalId, request);
+    }
+
+    protected PostLoansLoanIdTransactionsResponse adjustLoanTransaction(String loanExternalId, Long transactionId,
+            PostLoansLoanIdTransactionsTransactionIdRequest request) {
+        return transactionHelper.adjustLoanTransaction(loanExternalId, transactionId, request);
+    }
+
+    protected GetLoansLoanIdTransactionsTemplateResponse retrieveTransactionTemplate(String loanExternalId, String command,
+            String dateFormat, String transactionDate, String locale) {
+        return transactionHelper.retrieveTransactionTemplate(loanExternalId, command, dateFormat, transactionDate, locale);
+    }
+
+    protected PostLoansLoanIdChargesResponse addLoanCharge(String loanExternalId, PostLoansLoanIdChargesRequest request) {
+        return loanHelper.addLoanCharge(loanExternalId, request);
+    }
+
+    protected List<GetLoansLoanIdChargesChargeIdResponse> getLoanCharges(String loanExternalId) {
+        return loanHelper.getLoanCharges(loanExternalId);
+    }
+
+    protected GetLoansLoanIdChargesChargeIdResponse getLoanCharge(String loanExternalId, Long loanChargeId) {
+        return loanHelper.getLoanCharge(loanExternalId, loanChargeId);
+    }
+
+    protected GetLoansLoanIdChargesChargeIdResponse getLoanCharge(Long loanId, String loanChargeExternalId) {
+        return loanHelper.getLoanCharge(loanId, loanChargeExternalId);
+    }
+
+    protected GetLoansLoanIdChargesChargeIdResponse getLoanCharge(String loanExternalId, String loanChargeExternalId) {
+        return loanHelper.getLoanCharge(loanExternalId, loanChargeExternalId);
+    }
+
+    protected GetLoansLoanIdChargesTemplateResponse getLoanChargeTemplate(String loanExternalId) {
+        return loanHelper.getLoanChargeTemplate(loanExternalId);
+    }
+
+    protected GetLoansLoanIdChargesTemplateResponse getLoanChargeTemplate(Long loanId) {
+        return loanHelper.getLoanChargeTemplate(loanId);
+    }
+
+    protected PostLoansLoanIdChargesChargeIdResponse waiveLoanCharge(String loanExternalId, Long loanChargeId,
+            PostLoansLoanIdChargesChargeIdRequest request) {
+        return loanHelper.waiveLoanCharge(loanExternalId, loanChargeId, request);
+    }
+
+    protected PostLoansLoanIdChargesChargeIdResponse waiveLoanCharge(String loanExternalId, String loanChargeExternalId,
+            PostLoansLoanIdChargesChargeIdRequest request) {
+        return loanHelper.waiveLoanCharge(loanExternalId, loanChargeExternalId, request);
+    }
+
+    protected PostLoansLoanIdChargesChargeIdResponse payLoanCharge(String loanExternalId, Long loanChargeId,
+            PostLoansLoanIdChargesChargeIdRequest request) {
+        return loanHelper.payLoanCharge(loanExternalId, loanChargeId, request);
+    }
+
+    protected PostLoansLoanIdChargesChargeIdResponse payLoanCharge(String loanExternalId, String loanChargeExternalId,
+            PostLoansLoanIdChargesChargeIdRequest request) {
+        return loanHelper.payLoanCharge(loanExternalId, loanChargeExternalId, request);
+    }
+
+    protected PostLoansLoanIdChargesChargeIdResponse chargeAdjustment(String loanExternalId, String loanChargeExternalId,
+            PostLoansLoanIdChargesChargeIdRequest request) {
+        return loanHelper.chargeAdjustment(loanExternalId, loanChargeExternalId, request);
+    }
+
+    protected PutLoansLoanIdChargesChargeIdResponse updateLoanCharge(Long loanId, Long loanChargeId,
+            PutLoansLoanIdChargesChargeIdRequest request) {
+        return loanHelper.updateLoanCharge(loanId, loanChargeId, request);
+    }
+
+    protected PutLoansLoanIdChargesChargeIdResponse updateLoanCharge(Long loanId, String loanChargeExternalId,
+            PutLoansLoanIdChargesChargeIdRequest request) {
+        return loanHelper.updateLoanCharge(loanId, loanChargeExternalId, request);
+    }
+
+    protected PutLoansLoanIdChargesChargeIdResponse updateLoanCharge(String loanExternalId, Long loanChargeId,
+            PutLoansLoanIdChargesChargeIdRequest request) {
+        return loanHelper.updateLoanCharge(loanExternalId, loanChargeId, request);
+    }
+
+    protected PutLoansLoanIdChargesChargeIdResponse updateLoanCharge(String loanExternalId, String loanChargeExternalId,
+            PutLoansLoanIdChargesChargeIdRequest request) {
+        return loanHelper.updateLoanCharge(loanExternalId, loanChargeExternalId, request);
+    }
+
+    protected DeleteLoansLoanIdChargesChargeIdResponse deleteLoanCharge(String loanExternalId, Long loanChargeId) {
+        return loanHelper.deleteLoanCharge(loanExternalId, loanChargeId);
+    }
+
+    protected DeleteLoansLoanIdChargesChargeIdResponse deleteLoanCharge(String loanExternalId, String loanChargeExternalId) {
+        return loanHelper.deleteLoanCharge(loanExternalId, loanChargeExternalId);
+    }
+
+    protected org.apache.fineract.client.models.GetLoansApprovalTemplateResponse getLoanApprovalTemplate(String loanExternalId) {
+        return loanHelper.getLoanApprovalTemplate(loanExternalId);
+    }
+
+    protected PutLoansLoanIdResponse modifyLoanApplication(String loanExternalId, String command, PutLoansLoanIdRequest request) {
+        return loanHelper.modifyLoanApplication(loanExternalId, command, request);
+    }
+
+    protected List<org.apache.fineract.client.models.GetDelinquencyTagHistoryResponse> getLoanDelinquencyTags(String loanExternalId) {
+        return loanHelper.getLoanDelinquencyTags(loanExternalId);
+    }
+
+    protected org.apache.fineract.client.models.DeleteLoansLoanIdResponse deleteLoanApplication(String loanExternalId) {
+        return loanHelper.deleteLoanApplication(loanExternalId);
+    }
+
+    protected PostLoansLoanIdResponse approveLoan(String loanExternalId, PostLoansLoanIdRequest request) {
+        return loanHelper.approveLoan(loanExternalId, request);
+    }
+
+    protected PostLoansLoanIdResponse approveLoan(String date, Integer loanId) {
+        return loanHelper.approveLoan(date, loanId.longValue());
+    }
+
+    protected PostLoansLoanIdResponse disburseLoan(String loanExternalId, PostLoansLoanIdRequest request) {
+        return loanHelper.disburseLoan(loanExternalId, request);
+    }
+
+    protected PostLoansLoanIdResponse undoApprovalLoan(String loanExternalId, PostLoansLoanIdRequest request) {
+        return loanHelper.undoApprovalLoan(loanExternalId, request);
+    }
+
+    protected PostLoansLoanIdResponse undoDisbursalLoan(String loanExternalId, PostLoansLoanIdRequest request) {
+        return loanHelper.undoDisbursalLoan(loanExternalId, request);
+    }
+
+    protected PostLoansLoanIdResponse undoLastDisbursalLoan(String loanExternalId, PostLoansLoanIdRequest request) {
+        return loanHelper.undoLastDisbursalLoan(loanExternalId, request);
+    }
+
+    protected PostLoansLoanIdResponse withdrawnByApplicantLoan(String loanExternalId, PostLoansLoanIdRequest request) {
+        return loanHelper.withdrawnByApplicantLoan(loanExternalId, request);
+    }
+
+    protected PostLoansLoanIdResponse assignLoanOfficerLoan(String loanExternalId, PostLoansLoanIdRequest request) {
+        return loanHelper.assignLoanOfficerLoan(loanExternalId, request);
+    }
+
+    protected PostLoansLoanIdResponse unassignLoanOfficerLoan(String loanExternalId, PostLoansLoanIdRequest request) {
+        return loanHelper.unassignLoanOfficerLoan(loanExternalId, request);
+    }
+
+    protected PostLoansLoanIdResponse recoverGuaranteesLoan(String loanExternalId, PostLoansLoanIdRequest request) {
+        return loanHelper.recoverGuaranteesLoan(loanExternalId, request);
+    }
+
+    protected PostLoansLoanIdResponse assignDelinquencyLoan(String loanExternalId, PostLoansLoanIdRequest request) {
+        return loanHelper.assignDelinquencyLoan(loanExternalId, request);
+    }
+
+    protected PostLoansLoanIdResponse rejectLoan(String loanExternalId, PostLoansLoanIdRequest request) {
+        return loanHelper.rejectLoanByExternalId(loanExternalId, request);
+    }
+
+    protected PostLoansLoanIdTransactionsResponse chargeOffLoan(String loanExternalId, PostLoansLoanIdTransactionsRequest request) {
+        return transactionHelper.chargeOffLoan(loanExternalId, request);
+    }
+
+    protected PostLoansLoanIdResponse disburseToSavingsLoan(String loanExternalId, PostLoansLoanIdRequest request) {
+        return loanHelper.disburseToSavingsLoan(loanExternalId, request);
+    }
+
+    protected PostLoansLoanIdTransactionsResponse makeRefundByCash(String loanExternalId, PostLoansLoanIdTransactionsRequest request) {
+        return transactionHelper.makeRefundByCash(loanExternalId, request);
+    }
+
+    protected Integer openSavingsAccount(Long clientId, String minimumOpeningBalance) {
+        return openSavingsAccount(clientId, minimumOpeningBalance, Utils.getLocalDateOfTenant().format(dateTimeFormatter));
+    }
+
+    protected Integer openSavingsAccount(Long clientId, String minimumOpeningBalance, String submittedOnDate) {
+        org.apache.fineract.integrationtests.client.feign.helpers.FeignSavingsProductHelper savingsProductHelper = new org.apache.fineract.integrationtests.client.feign.helpers.FeignSavingsProductHelper(
+                FineractFeignClientHelper.getFineractFeignClient());
+        org.apache.fineract.integrationtests.client.feign.helpers.FeignSavingsHelper savingsHelper = new org.apache.fineract.integrationtests.client.feign.helpers.FeignSavingsHelper(
+                FineractFeignClientHelper.getFineractFeignClient());
+        org.apache.fineract.integrationtests.client.feign.helpers.FeignSavingsTransactionHelper savingsTransactionHelper = new org.apache.fineract.integrationtests.client.feign.helpers.FeignSavingsTransactionHelper(
+                FineractFeignClientHelper.getFineractFeignClient());
+        Long productId = savingsProductHelper.createDefaultSavingsProduct().getResourceId();
+        Long savingsId = savingsHelper.createApproveActivateSavings(clientId, productId, submittedOnDate);
+        if (minimumOpeningBalance != null && !minimumOpeningBalance.isBlank()) {
+            savingsTransactionHelper.deposit(savingsId, minimumOpeningBalance, submittedOnDate);
+        }
+        return savingsId.intValue();
     }
 
     protected GetLoansLoanIdTransactionsTemplateResponse getPrepaymentAmount(Long loanId, String transactionDate, String dateFormat) {
@@ -891,6 +1285,14 @@ public abstract class FeignLoanTestBase extends FeignIntegrationTest implements 
         return transactionHelper.closeRescheduledLoan(loanId, request);
     }
 
+    protected PostLoansLoanIdTransactionsResponse closeRescheduledLoan(String loanExternalId, PostLoansLoanIdTransactionsRequest request) {
+        return transactionHelper.closeRescheduledLoan(loanExternalId, request);
+    }
+
+    protected PostLoansLoanIdTransactionsResponse closeLoan(String loanExternalId, PostLoansLoanIdTransactionsRequest request) {
+        return transactionHelper.closeLoan(loanExternalId, request);
+    }
+
     protected Long addCharge(Long loanId, boolean isPenalty, double amount, String dueDate) {
         ChargeRequest chargeRequest = ChargeRequestBuilders.loanSpecifiedDueDateFee(amount);
         if (isPenalty) {
@@ -1060,5 +1462,61 @@ public abstract class FeignLoanTestBase extends FeignIntegrationTest implements 
         LoanTestValidators.validateRepaymentPeriod(loanDetails, index, dueDate, principalDue, principalPaid, principalOutstanding, feeDue,
                 feePaid, feeOutstanding, penaltyDue, penaltyPaid, penaltyOutstanding, interestDue, interestPaid, interestOutstanding,
                 paidInAdvance, paidLate);
+    }
+
+    protected void deleteAllExternalEvents() {
+        externalEventHelper.deleteAllExternalEvents();
+    }
+
+    protected GetLoansLoanIdTransactionsResponse getLoanTransactions(Long loanId) {
+        return transactionHelper.getLoanTransactions(loanId);
+    }
+
+    protected GetLoansLoanIdTransactionsResponse getLoanTransactions(Long loanId, List<TransactionType> excludedTransactionTypes) {
+        return transactionHelper.getLoanTransactions(loanId, excludedTransactionTypes);
+    }
+
+    protected GetLoansLoanIdTransactionsResponse getLoanTransactionsByExternalId(String loanExternalId) {
+        return transactionHelper.getLoanTransactionsByExternalId(loanExternalId);
+    }
+
+    protected GetLoansLoanIdTransactionsResponse getLoanTransactionsByExternalId(String loanExternalId,
+            List<TransactionType> excludedTransactionTypes) {
+        return transactionHelper.getLoanTransactionsByExternalId(loanExternalId, excludedTransactionTypes);
+    }
+
+    protected GetLoansLoanIdTransactionsTemplateResponse retrieveTransactionTemplate(Long loanId, String command, String dateFormat,
+            String transactionDate, String locale) {
+        return transactionHelper.retrieveTransactionTemplate(loanId, command, dateFormat, transactionDate, locale);
+    }
+
+    protected GetLoansLoanIdTransactionsTemplateResponse retrieveTransactionTemplate(Long loanId, String command, String dateFormat,
+            String transactionDate, String locale, Long transactionId) {
+        return transactionHelper.retrieveTransactionTemplate(loanId, command, dateFormat, transactionDate, locale, transactionId);
+    }
+
+    protected PostLoansLoanIdTransactionsResponse executeLoanTransaction(Long loanId, PostLoansLoanIdTransactionsRequest request,
+            String command) {
+        return transactionHelper.executeLoanTransaction(loanId, request, command);
+    }
+
+    protected void makeRepayment(String date, float amount, long loanId) {
+        transactionHelper.makeRepayment(date, amount, (int) loanId);
+    }
+
+    protected void makeRefundByCash(String date, float amount, long loanId) {
+        transactionHelper.makeRefundByCash(date, amount, (int) loanId);
+    }
+
+    protected Account feeIncomeAccount() {
+        return getAccounts().getFeeIncomeAccount();
+    }
+
+    protected Account deferredIncomeLiabilityAccount() {
+        return getAccounts().getDeferredIncomeLiabilityAccount();
+    }
+
+    protected Account buyDownExpenseAccount() {
+        return getAccounts().getBuyDownExpenseAccount();
     }
 }
