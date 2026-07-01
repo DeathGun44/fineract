@@ -33,7 +33,6 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.apache.fineract.client.feign.FeignException;
 import org.apache.fineract.client.feign.FineractFeignClient;
 import org.apache.fineract.client.feign.ObjectMapperFactory;
 import org.apache.fineract.client.feign.util.CallFailedRuntimeException;
@@ -126,16 +125,37 @@ public class FeignLoanHelper {
     }
 
     public Long createLoanProductFromJson(String loanProductJson) {
-        ResponseSpecification responseSpec = new ResponseSpecBuilder().expectStatusCode(200).build();
-        Integer resourceId = Utils.performServerPost(jsonRequestSpec(), responseSpec, CREATE_LOAN_PRODUCT_URL, loanProductJson,
-                "resourceId");
-        return resourceId.longValue();
+        try {
+            String sanitizedJson = loanProductJson.replaceAll("(?<=\\d),(?=\\d{3})", "");
+            PostLoanProductsRequest request = ObjectMapperFactory.getShared().readValue(sanitizedJson, PostLoanProductsRequest.class);
+            return createLoanProduct(request);
+        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+            throw new IllegalArgumentException("Invalid loan product json", e);
+        }
     }
 
     @SuppressWarnings("unchecked")
+    private <T> T extractErrorAttribute(CallFailedRuntimeException exception, String jsonAttributeToGetBack) {
+        if (!(exception.getCause() instanceof org.apache.fineract.client.feign.FeignException feignException)) {
+            throw new IllegalStateException("Expected FeignException cause");
+        }
+        try {
+            Map<String, Object> body = ObjectMapperFactory.getShared().readValue(feignException.responseBodyAsString(), Map.class);
+            return (T) body.get(jsonAttributeToGetBack);
+        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+            throw new IllegalStateException("Failed to parse error response for attribute " + jsonAttributeToGetBack, e);
+        }
+    }
+
     public <T> T getLoanProductError(String loanProductJson, String jsonAttributeToGetBack) {
-        ResponseSpecification responseSpec = new ResponseSpecBuilder().expectStatusCode(400).build();
-        return Utils.performServerPost(jsonRequestSpec(), responseSpec, CREATE_LOAN_PRODUCT_URL, loanProductJson, jsonAttributeToGetBack);
+        try {
+            String sanitizedJson = loanProductJson.replaceAll("(?<=\\d),(?=\\d{3})", "");
+            PostLoanProductsRequest request = ObjectMapperFactory.getShared().readValue(sanitizedJson, PostLoanProductsRequest.class);
+            CallFailedRuntimeException ex = fail(() -> fineractClient.loanProducts().createLoanProduct(request));
+            return extractErrorAttribute(ex, jsonAttributeToGetBack);
+        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+            throw new IllegalArgumentException("Invalid loan product json", e);
+        }
     }
 
     public CallFailedRuntimeException addLoanChargeExpectingError(Long loanId, PostLoansLoanIdChargesRequest request) {
@@ -496,14 +516,6 @@ public class FeignLoanHelper {
                 .addHeader("Fineract-Platform-TenantId", "default").build();
     }
 
-    private static <T> T readJson(String json, Class<T> type) {
-        try {
-            return ObjectMapperFactory.getShared().readValue(json, type);
-        } catch (JsonProcessingException e) {
-            throw new IllegalArgumentException("Invalid JSON for " + type.getSimpleName(), e);
-        }
-    }
-
     private PostLoansLoanIdResponse disburseToSavingsFromJson(Long loanId, String disburseJson) {
         ResponseSpecification responseSpec = new ResponseSpecBuilder().expectStatusCode(200).build();
         String response = Utils.performServerPost(jsonRequestSpec(), responseSpec, LOAN_DISBURSE_TO_SAVINGS_URL.formatted(loanId),
@@ -528,19 +540,6 @@ public class FeignLoanHelper {
             return mapper.writeValueAsString(body);
         } catch (JsonProcessingException e) {
             throw new IllegalStateException("Failed to serialize disburseToSavings request", e);
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <T> T extractErrorAttribute(CallFailedRuntimeException exception, String jsonAttributeToGetBack) {
-        if (!(exception.getCause() instanceof FeignException feignException)) {
-            throw new IllegalStateException("Expected FeignException cause");
-        }
-        try {
-            Map<String, Object> body = ObjectMapperFactory.getShared().readValue(feignException.responseBodyAsString(), Map.class);
-            return (T) body.get(jsonAttributeToGetBack);
-        } catch (JsonProcessingException e) {
-            throw new IllegalStateException("Failed to parse error response for attribute " + jsonAttributeToGetBack, e);
         }
     }
 

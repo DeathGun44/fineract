@@ -191,7 +191,7 @@ public class LoanTest {
         when(loanTransaction4.isNotReversed()).thenReturn(Boolean.TRUE);
         when(loanTransaction4.isAccrual()).thenReturn(Boolean.FALSE);
         when(loanTransaction4.isAccrualAdjustment()).thenReturn(Boolean.TRUE);
-        ReflectionTestUtils.setField(loan, "loanTransactions", List.of(loanTransaction, loanTransaction2, loanTransaction3));
+        ReflectionTestUtils.setField(loan, "loanTransactions", List.of(loanTransaction, loanTransaction2, loanTransaction3, loanTransaction4));
         final LoanTransaction userTransaction = loan.getLastUserTransaction();
         assertNotNull(userTransaction);
         assertEquals(loanTransaction2, userTransaction);

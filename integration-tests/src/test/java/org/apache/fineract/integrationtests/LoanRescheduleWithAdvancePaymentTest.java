@@ -91,14 +91,14 @@ public class LoanRescheduleWithAdvancePaymentTest extends FeignLoanTestBase {
     }
 
     private void updateWorkingDaysWeekDays() {
-        ok(() -> fineractClient().workingDays().update6(new WorkingDaysUpdateRequest()//
+        ok(() -> fineractClient().workingDays().updateWorkingDay(new WorkingDaysUpdateRequest()//
                 .recurrence("FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR")//
                 .repaymentRescheduleType(2)//
                 .extendTermForDailyRepayments(false)));
     }
 
     private void updateWorkingDays() {
-        ok(() -> fineractClient().workingDays().update6(new WorkingDaysUpdateRequest()//
+        ok(() -> fineractClient().workingDays().updateWorkingDay(new WorkingDaysUpdateRequest()//
                 .recurrence("FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,TU,WE,TH,FR,SA,SU")//
                 .repaymentRescheduleType(RANDOM.nextInt(4) + 1)//
                 .extendTermForDailyRepayments(false)));

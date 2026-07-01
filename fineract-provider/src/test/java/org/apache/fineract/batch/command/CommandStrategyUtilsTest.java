@@ -127,8 +127,8 @@ class CommandStrategyUtilsTest {
         // then
         assertThat(result).isNotNull();
         Object actualValue = getFieldValue(result, fieldName);
-        if (expectedValue instanceof BigDecimal) {
-            assertThat((BigDecimal) actualValue).isEqualByComparingTo((BigDecimal) expectedValue);
+        if (expectedValue instanceof BigDecimal bigDecimal) {
+            assertThat((BigDecimal) actualValue).isEqualByComparingTo(bigDecimal);
         } else {
             assertThat(actualValue).isEqualTo(expectedValue);
         }
@@ -240,22 +240,15 @@ class CommandStrategyUtilsTest {
     }
 
     private Object getFieldValue(TestRequest request, String fieldName) {
-        switch (fieldName) {
-            case "stringField":
-                return request.getStringField();
-            case "integerField":
-                return request.getIntegerField();
-            case "longField":
-                return request.getLongField();
-            case "bigDecimalField":
-                return request.getBigDecimalField();
-            case "doubleField":
-                return request.getDoubleField();
-            case "booleanField":
-                return request.getBooleanField();
-            default:
-                return null;
-        }
+        return switch (fieldName) {
+            case "stringField" -> request.getStringField();
+            case "integerField" -> request.getIntegerField();
+            case "longField" -> request.getLongField();
+            case "bigDecimalField" -> request.getBigDecimalField();
+            case "doubleField" -> request.getDoubleField();
+            case "booleanField" -> request.getBooleanField();
+            default -> null;
+        };
     }
 
     @Data
