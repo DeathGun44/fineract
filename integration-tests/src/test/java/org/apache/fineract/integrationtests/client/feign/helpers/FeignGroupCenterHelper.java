@@ -59,8 +59,7 @@ public final class FeignGroupCenterHelper {
         return extractResourceId(FeignRawHttpHelper.post("/staff", GSON.toJson(map)));
     }
 
-    public static Long createCenter(String name, int officeId, String externalId, int staffId, long[] groupMembers,
-            String activationDate) {
+    public static Long createCenter(String name, int officeId, String externalId, int staffId, long[] groupMembers, String activationDate) {
         Map<String, Object> map = new HashMap<>();
         map.put("name", name);
         map.put("officeId", officeId);

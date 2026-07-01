@@ -30,8 +30,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
+import org.apache.fineract.client.feign.util.CallFailedRuntimeException;
 import org.apache.fineract.client.models.GetLoansLoanIdRepaymentPeriod;
 import org.apache.fineract.client.models.GetLoansLoanIdResponse;
+import org.apache.fineract.client.models.LoanScheduleData;
+import org.apache.fineract.client.models.LoanTransactionData;
 import org.apache.fineract.client.models.PostChargesResponse;
 import org.apache.fineract.client.models.PostLoanProductsRequest;
 import org.apache.fineract.client.models.PostLoansLoanIdChargesResponse;
@@ -39,13 +42,10 @@ import org.apache.fineract.client.models.PostLoansLoanIdTransactionsRequest;
 import org.apache.fineract.client.models.PostLoansLoanIdTransactionsResponse;
 import org.apache.fineract.client.models.PostLoansLoanIdTransactionsTransactionIdRequest;
 import org.apache.fineract.client.models.PostLoansRequest;
-import org.apache.fineract.client.feign.util.CallFailedRuntimeException;
-import org.apache.fineract.client.models.LoanScheduleData;
-import org.apache.fineract.client.models.LoanTransactionData;
 import org.apache.fineract.integrationtests.client.feign.FeignLoanTestBase;
+import org.apache.fineract.integrationtests.client.feign.modules.LoanTestData;
 import org.apache.fineract.integrationtests.client.feign.modules.LoanTestData.InterestCalculationPeriodType;
 import org.apache.fineract.integrationtests.client.feign.modules.LoanTestData.RepaymentFrequencyType;
-import org.apache.fineract.integrationtests.client.feign.modules.LoanTestData;
 import org.apache.fineract.portfolio.loanaccount.domain.LoanStatus;
 import org.apache.fineract.portfolio.loanaccount.domain.reaging.LoanReAgeInterestHandlingType;
 import org.junit.jupiter.api.Test;
@@ -335,8 +335,9 @@ public class LoanReAgingIntegrationTest extends FeignLoanTestBase {
         runAt("01 February 2023", () -> {
             long loanId = createdLoanId.get();
 
-            makeLoanRepayment(loanId, new PostLoansLoanIdTransactionsRequest().dateFormat(LoanTestData.DATETIME_PATTERN)
-                    .transactionDate("01 February 2023").locale(LoanTestData.LOCALE).transactionAmount(100.0).externalId(repaymentExternalId));
+            makeLoanRepayment(loanId,
+                    new PostLoansLoanIdTransactionsRequest().dateFormat(LoanTestData.DATETIME_PATTERN).transactionDate("01 February 2023")
+                            .locale(LoanTestData.LOCALE).transactionAmount(100.0).externalId(repaymentExternalId));
 
             // verify transactions
             verifyTransactions(loanId, //
@@ -530,8 +531,8 @@ public class LoanReAgingIntegrationTest extends FeignLoanTestBase {
 
             long loanId = createdLoanId.get();
             PostLoansLoanIdTransactionsResponse repaymentResponse = makeLoanRepayment(loanId,
-                    new PostLoansLoanIdTransactionsRequest().dateFormat(LoanTestData.DATETIME_PATTERN).transactionDate("02 February 2023").locale(LoanTestData.LOCALE)
-                            .transactionAmount(200.0));
+                    new PostLoansLoanIdTransactionsRequest().dateFormat(LoanTestData.DATETIME_PATTERN).transactionDate("02 February 2023")
+                            .locale(LoanTestData.LOCALE).transactionAmount(200.0));
 
             // verify transactions
             verifyTransactions(loanId, //
@@ -560,8 +561,8 @@ public class LoanReAgingIntegrationTest extends FeignLoanTestBase {
             verifyLoanStatus(loanId, LoanStatus.ACTIVE);
 
             reverseLoanTransaction(loanId, repaymentResponse.getResourceId(),
-                    new PostLoansLoanIdTransactionsTransactionIdRequest().dateFormat(LoanTestData.DATETIME_PATTERN).transactionDate("28 February 2023")
-                            .transactionAmount(0.0).locale(LoanTestData.LOCALE));
+                    new PostLoansLoanIdTransactionsTransactionIdRequest().dateFormat(LoanTestData.DATETIME_PATTERN)
+                            .transactionDate("28 February 2023").transactionAmount(0.0).locale(LoanTestData.LOCALE));
 
             // verify transactions
             verifyTransactions(loanId, //
@@ -1216,4 +1217,3 @@ public class LoanReAgingIntegrationTest extends FeignLoanTestBase {
     }
 
 }
-
