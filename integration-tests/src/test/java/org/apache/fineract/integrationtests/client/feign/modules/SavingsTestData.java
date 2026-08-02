@@ -70,6 +70,7 @@ public final class SavingsTestData {
         private AccountingRule() {}
     }
 
+    /** Product fields absent from {@code PostSavingsProductsRequest}, so reachable only through the raw path. */
     public static final class SavingsStatus {
 
         public static final int SUBMITTED = 100;
