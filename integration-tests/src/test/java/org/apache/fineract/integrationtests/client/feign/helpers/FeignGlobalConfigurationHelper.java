@@ -61,6 +61,10 @@ public class FeignGlobalConfigurationHelper {
                 .orElseThrow(() -> new RuntimeException("Configuration not found: " + configName));
     }
 
+    public GlobalConfigurationPropertyData getGlobalConfigurationByName(String configName) {
+        return ok(() -> fineractClient.globalConfiguration().retrieveOneByName(configName));
+    }
+
     private List<GlobalConfigurationPropertyData> getConfigurationList() {
         GetGlobalConfigurationsResponse response = ok(() -> fineractClient.globalConfiguration().retrieveConfiguration(false));
         return response.getGlobalConfiguration();
