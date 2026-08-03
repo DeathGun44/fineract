@@ -18,8 +18,12 @@
  */
 package org.apache.fineract.integrationtests.common.batch;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import java.util.List;
+import org.apache.fineract.client.feign.ObjectMapperFactory;
 import org.apache.fineract.client.feign.services.BatchApiApi;
+import org.apache.fineract.client.feign.util.CallFailedRuntimeException;
 import org.apache.fineract.client.feign.util.FeignCalls;
 import org.apache.fineract.client.models.BatchRequest;
 import org.apache.fineract.client.models.BatchResponse;
@@ -42,5 +46,23 @@ public class BatchServiceHelper {
 
     public List<BatchResponse> handleBatch(List<BatchRequest> batchRequests, boolean enclosingTransaction) {
         return FeignCalls.ok(() -> api().handleBatchRequests(batchRequests, enclosingTransaction));
+    }
+
+    /** A failed batch raises on the sub-request's status code, but the body is still the sub-response list. */
+    public List<BatchResponse> handleBatchAllowingFailure(List<BatchRequest> batchRequests, boolean enclosingTransaction) {
+        try {
+            return handleBatch(batchRequests, enclosingTransaction);
+        } catch (CallFailedRuntimeException e) {
+            return parseBatchResponses(e);
+        }
+    }
+
+    private static List<BatchResponse> parseBatchResponses(CallFailedRuntimeException failure) {
+        try {
+            return ObjectMapperFactory.getShared().readValue(failure.getResponseBody(), new TypeReference<List<BatchResponse>>() {});
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Batch call failed with status " + failure.getStatus()
+                    + " and a body that is not a list of batch responses: " + failure.getResponseBody(), e);
+        }
     }
 }
