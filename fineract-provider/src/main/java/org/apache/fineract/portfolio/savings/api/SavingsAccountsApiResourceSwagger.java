@@ -301,6 +301,8 @@ final class SavingsAccountsApiResourceSwagger {
         public String locale;
         @Schema(example = "5.9999999999")
         public Double nominalAnnualInterestRate;
+        @Schema(example = "true")
+        public Boolean withdrawalFeeForTransfers;
     }
 
     @Schema(description = "PutSavingsAccountsAccountIdResponse")
