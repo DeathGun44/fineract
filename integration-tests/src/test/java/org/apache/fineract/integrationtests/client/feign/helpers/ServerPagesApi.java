@@ -16,28 +16,29 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.fineract.integrationtests;
+package org.apache.fineract.integrationtests.client.feign.helpers;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
+import feign.RequestLine;
 import feign.Response;
-import org.apache.fineract.integrationtests.client.feign.helpers.ServerPagesApi;
-import org.apache.fineract.integrationtests.common.FineractFeignClientHelper;
-import org.junit.jupiter.api.Test;
+import java.util.Map;
 
 /**
- * @author Manthan Surkar
+ * Pages the server publishes outside {@code /api}: the actuator, the Swagger UI with its spec, and the legacy API docs.
+ * They are not part of the OpenAPI spec, so the generated client has no operations for them. Use it on
+ * {@code FineractFeignClientHelper.createProviderRootFeignClient()}, whose base URL is the {@code /fineract-provider}
+ * root.
  */
-public class SwaggeruiTest {
+public interface ServerPagesApi {
 
-    private final ServerPagesApi serverPagesApi = FineractFeignClientHelper.createProviderRootFeignClient().create(ServerPagesApi.class);
+    @RequestLine("GET /actuator/info")
+    Map<String, Object> actuatorInfo();
 
-    @Test
-    public void testSwaggeruiAccess() {
-        try (Response swaggerUi = serverPagesApi.swaggerUi(); Response openApiSpec = serverPagesApi.openApiSpec()) {
-            assertEquals(200, swaggerUi.status());
-            assertEquals(200, openApiSpec.status());
-        }
-    }
+    @RequestLine("GET /swagger-ui/index.html")
+    Response swaggerUi();
 
+    @RequestLine("GET /fineract.json")
+    Response openApiSpec();
+
+    @RequestLine("GET /legacy-docs/apiLive.htm")
+    Response legacyApiDocs();
 }

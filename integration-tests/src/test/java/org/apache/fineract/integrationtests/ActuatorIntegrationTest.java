@@ -16,37 +16,27 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package org.apache.fineract.integrationtests;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import io.restassured.RestAssured;
-import io.restassured.http.ContentType;
-import io.restassured.response.Response;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.fineract.integrationtests.common.Utils;
-import org.junit.jupiter.api.BeforeEach;
+import org.apache.fineract.integrationtests.client.feign.helpers.ServerPagesApi;
+import org.apache.fineract.integrationtests.common.FineractFeignClientHelper;
 import org.junit.jupiter.api.Test;
 
 @Slf4j
 public class ActuatorIntegrationTest {
 
-    private static final String INFO_URL = "/fineract-provider/actuator/info";
-
-    @BeforeEach
-    public void setup() {
-        Utils.initializeRESTAssured();
-    }
+    private final ServerPagesApi serverPagesApi = FineractFeignClientHelper.createProviderRootFeignClient().create(ServerPagesApi.class);
 
     @Test
     public void testActuatorGitBuildInfo() {
-        log.info(INFO_URL);
-        Response response = RestAssured.given().headers("Content-Type", ContentType.JSON, "Accept", ContentType.JSON).when().get(INFO_URL)
-                .then().contentType(ContentType.JSON).extract().response();
+        Map<String, Object> info = serverPagesApi.actuatorInfo();
 
-        Map<String, String> gitBuildInfo = response.jsonPath().getMap("git");
+        @SuppressWarnings("unchecked")
+        Map<String, Object> gitBuildInfo = (Map<String, Object>) info.get("git");
 
         assertTrue(gitBuildInfo.containsKey("branch"));
         assertTrue(gitBuildInfo.containsKey("remote"));
