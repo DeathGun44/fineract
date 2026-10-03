@@ -57,16 +57,6 @@ public class GroupHelper {
     // org.apache.fineract.client.models.PostLoansLoanIdRequest)
     @Deprecated(forRemoval = true)
     public static Integer createGroup(final RequestSpecification requestSpec, final ResponseSpecification responseSpec,
-            @SuppressWarnings("unused") final boolean active) {
-        LOG.info("---------------------------------CREATING A GROUP---------------------------------------------");
-        return createGroup(requestSpec, responseSpec, "04 March 2011");
-    }
-
-    // TODO: Rewrite to use fineract-client instead!
-    // Example: org.apache.fineract.integrationtests.common.loans.LoanTransactionHelper.disburseLoan(java.lang.Long,
-    // org.apache.fineract.client.models.PostLoansLoanIdRequest)
-    @Deprecated(forRemoval = true)
-    public static Integer createGroup(final RequestSpecification requestSpec, final ResponseSpecification responseSpec,
             final String activationDate) {
         LOG.info("---------------------------------CREATING A GROUP---------------------------------------------");
         return Utils.performServerPost(requestSpec, responseSpec, CREATE_GROUP_URL, getTestGroupAsJSON(true, activationDate), "groupId");
@@ -79,27 +69,6 @@ public class GroupHelper {
     public static Integer createGroup(final RequestSpecification requestSpec, final ResponseSpecification responseSpec) {
         LOG.info("---------------------------------CREATING A GROUP---------------------------------------------");
         return Utils.performServerPost(requestSpec, responseSpec, CREATE_GROUP_URL, getTestGroupAsJSON(false, ""), "groupId");
-    }
-
-    // TODO: Rewrite to use fineract-client instead!
-    // Example: org.apache.fineract.integrationtests.common.loans.LoanTransactionHelper.disburseLoan(java.lang.Long,
-    // org.apache.fineract.client.models.PostLoansLoanIdRequest)
-    @Deprecated(forRemoval = true)
-    public Object createGroupWithError(final String jsonAttributeToGetBack) {
-        LOG.info("---------------------------------CREATING A GROUP WITH ERROR---------------------------------------------");
-        return Utils.performServerPost(this.requestSpec, this.responseSpec, CREATE_GROUP_URL, getTestGroupAsJSON(false, ""),
-                jsonAttributeToGetBack);
-    }
-
-    // TODO: Rewrite to use fineract-client instead!
-    // Example: org.apache.fineract.integrationtests.common.loans.LoanTransactionHelper.disburseLoan(java.lang.Long,
-    // org.apache.fineract.client.models.PostLoansLoanIdRequest)
-    @Deprecated(forRemoval = true)
-    public static Integer createGroupPendingWithDatatable(final RequestSpecification requestSpec, final ResponseSpecification responseSpec,
-            final String registeredTableName) {
-        LOG.info("-------------------------- CREATING A GROUP WITH DATATABLES --------------------------------");
-        return Utils.performServerPost(requestSpec, responseSpec, CREATE_GROUP_URL, getTestGroupWithDatatableAsJson(registeredTableName),
-                "groupId");
     }
 
     // TODO: Rewrite to use fineract-client instead!
@@ -276,36 +245,12 @@ public class GroupHelper {
     // Example: org.apache.fineract.integrationtests.common.loans.LoanTransactionHelper.disburseLoan(java.lang.Long,
     // org.apache.fineract.client.models.PostLoansLoanIdRequest)
     @Deprecated(forRemoval = true)
-    public static void verifyGroupCreatedOnServer(final RequestSpecification requestSpec, final ResponseSpecification responseSpec,
-            final Integer generatedGroupID) {
-        LOG.info("------------------------------CHECK GROUP DETAILS------------------------------------\n");
-        final String GROUP_URL = "/fineract-provider/api/v1/groups/" + generatedGroupID + "?" + Utils.TENANT_IDENTIFIER;
-        final Integer responseGroupID = Utils.performServerGet(requestSpec, responseSpec, GROUP_URL, "id");
-        assertEquals(generatedGroupID, responseGroupID, "ERROR IN CREATING THE GROUP");
-    }
-
-    // TODO: Rewrite to use fineract-client instead!
-    // Example: org.apache.fineract.integrationtests.common.loans.LoanTransactionHelper.disburseLoan(java.lang.Long,
-    // org.apache.fineract.client.models.PostLoansLoanIdRequest)
-    @Deprecated(forRemoval = true)
     public static void verifyGroupDetails(final RequestSpecification requestSpec, final ResponseSpecification responseSpec,
             final Integer generatedGroupID, final String field, final String expectedValue) {
         LOG.info("------------------------------CHECK GROUP DETAILS------------------------------------\n");
         final String GROUP_URL = "/fineract-provider/api/v1/groups/" + generatedGroupID + "?" + Utils.TENANT_IDENTIFIER;
         final String responseValue = Utils.performServerGet(requestSpec, responseSpec, GROUP_URL, field);
         assertEquals(expectedValue, responseValue, "ERROR IN CREATING THE GROUP");
-    }
-
-    // TODO: Rewrite to use fineract-client instead!
-    // Example: org.apache.fineract.integrationtests.common.loans.LoanTransactionHelper.disburseLoan(java.lang.Long,
-    // org.apache.fineract.client.models.PostLoansLoanIdRequest)
-    @Deprecated(forRemoval = true)
-    public static void verifyGroupActivatedOnServer(final RequestSpecification requestSpec, final ResponseSpecification responseSpec,
-            final Integer generatedGroupID, final boolean generatedGroupStatus) {
-        LOG.info("------------------------------CHECK GROUP STATUS------------------------------------\n");
-        final String GROUP_URL = "/fineract-provider/api/v1/groups/" + generatedGroupID + "?" + Utils.TENANT_IDENTIFIER;
-        final Boolean responseGroupStatus = Utils.performServerGet(requestSpec, responseSpec, GROUP_URL, "active");
-        assertEquals(generatedGroupStatus, responseGroupStatus, "ERROR IN ACTIVATING THE GROUP");
     }
 
     // TODO: Rewrite to use fineract-client instead!
@@ -420,44 +365,5 @@ public class GroupHelper {
 
     public static String randomNameGenerator(final String prefix, final int lenOfRandomSuffix) {
         return Utils.uniqueRandomStringGenerator(prefix, lenOfRandomSuffix);
-    }
-
-    // TODO: Rewrite to use fineract-client instead!
-    // Example: org.apache.fineract.integrationtests.common.loans.LoanTransactionHelper.disburseLoan(java.lang.Long,
-    // org.apache.fineract.client.models.PostLoansLoanIdRequest)
-    @Deprecated(forRemoval = true)
-    public static String getTestGroupWithDatatableAsJson(final String registeredTableName) {
-        final HashMap<String, Object> map = new HashMap<>();
-        map.put("officeId", "1");
-        map.put("name", randomNameGenerator("Group_Name_", 5));
-        map.put("externalId", UUID.randomUUID().toString());
-        map.put("dateFormat", "dd MMMM yyyy");
-        map.put("locale", "en");
-        map.put("active", "false");
-        map.put("submittedOnDate", "04 March 2011");
-        String requestJson = getTestDatatableAsJson(map, registeredTableName);
-        LOG.debug("map : {} ", requestJson);
-        return requestJson;
-    }
-
-    // TODO: Rewrite to use fineract-client instead!
-    // Example: org.apache.fineract.integrationtests.common.loans.LoanTransactionHelper.disburseLoan(java.lang.Long,
-    // org.apache.fineract.client.models.PostLoansLoanIdRequest)
-    @Deprecated(forRemoval = true)
-    public static String getTestDatatableAsJson(HashMap<String, Object> map, final String registeredTableName) {
-        List<HashMap<String, Object>> datatablesListMap = new ArrayList<>();
-        HashMap<String, Object> datatableMap = new HashMap<>();
-        HashMap<String, Object> dataMap = new HashMap<>();
-        dataMap.put("locale", "en");
-        dataMap.put("Spouse Name", Utils.randomStringGenerator("Spouse_name", 4));
-        dataMap.put("Number of Dependents", 5);
-        dataMap.put("Time of Visit", "01 December 2016 04:03");
-        dataMap.put("dateFormat", DATE_TIME_FORMAT);
-        dataMap.put("Date of Approval", "02 December 2016 00:00");
-        datatableMap.put("registeredTableName", registeredTableName);
-        datatableMap.put("data", dataMap);
-        datatablesListMap.add(datatableMap);
-        map.put("datatables", datatablesListMap);
-        return new Gson().toJson(map);
     }
 }
