@@ -34,9 +34,10 @@ import org.apache.fineract.client.feign.util.CallFailedRuntimeException;
 import org.apache.fineract.client.models.PostPaymentAllocationRule;
 import org.apache.fineract.client.models.PostWorkingCapitalLoansRequest;
 import org.apache.fineract.client.models.PutWorkingCapitalLoansLoanIdRequest;
+import org.apache.fineract.integrationtests.client.feign.helpers.FeignDelinquencyHelper;
 import org.apache.fineract.integrationtests.common.ClientHelper;
+import org.apache.fineract.integrationtests.common.FineractFeignClientHelper;
 import org.apache.fineract.integrationtests.common.Utils;
-import org.apache.fineract.integrationtests.common.products.DelinquencyBucketsHelper;
 import org.apache.fineract.integrationtests.common.workingcapitalloan.WorkingCapitalLoanApplicationTestBuilder;
 import org.apache.fineract.integrationtests.common.workingcapitalloan.WorkingCapitalLoanHelper;
 import org.apache.fineract.integrationtests.common.workingcapitalloanbreach.WorkingCapitalBreachHelper;
@@ -49,6 +50,8 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 public class WorkingCapitalLoanApplicationValidationTest {
 
+    private static final FeignDelinquencyHelper DELINQUENCY_HELPER = new FeignDelinquencyHelper(
+            FineractFeignClientHelper.getFineractFeignClient());
     private static Long delinquencyBucketId;
 
     private final WorkingCapitalLoanHelper applicationHelper = new WorkingCapitalLoanHelper();
@@ -57,7 +60,7 @@ public class WorkingCapitalLoanApplicationValidationTest {
 
     @BeforeAll
     static void initDelinquency() {
-        delinquencyBucketId = DelinquencyBucketsHelper.createDefaultWorkingCapitalBucket();
+        delinquencyBucketId = DELINQUENCY_HELPER.createDefaultWorkingCapitalBucket();
     }
 
     @Test
