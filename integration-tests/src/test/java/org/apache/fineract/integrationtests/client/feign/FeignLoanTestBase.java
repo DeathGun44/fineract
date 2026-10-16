@@ -112,6 +112,7 @@ import org.apache.fineract.integrationtests.client.feign.helpers.FeignExternalEv
 import org.apache.fineract.integrationtests.client.feign.helpers.FeignGlobalConfigurationHelper;
 import org.apache.fineract.integrationtests.client.feign.helpers.FeignJournalEntryHelper;
 import org.apache.fineract.integrationtests.client.feign.helpers.FeignLoanHelper;
+import org.apache.fineract.integrationtests.client.feign.helpers.FeignPaymentTypeHelper;
 import org.apache.fineract.integrationtests.client.feign.helpers.FeignSavingsHelper;
 import org.apache.fineract.integrationtests.client.feign.helpers.FeignSavingsProductHelper;
 import org.apache.fineract.integrationtests.client.feign.helpers.FeignSavingsTransactionHelper;
@@ -125,7 +126,6 @@ import org.apache.fineract.integrationtests.client.feign.modules.LoanTestAccount
 import org.apache.fineract.integrationtests.client.feign.modules.LoanTestData;
 import org.apache.fineract.integrationtests.client.feign.modules.LoanTestValidators;
 import org.apache.fineract.integrationtests.common.FineractFeignClientHelper;
-import org.apache.fineract.integrationtests.common.PaymentTypeHelper;
 import org.apache.fineract.integrationtests.common.Utils;
 import org.apache.fineract.integrationtests.common.accounting.Account;
 import org.apache.fineract.integrationtests.common.accounting.PeriodicAccrualAccountingHelper;
@@ -154,6 +154,7 @@ public abstract class FeignLoanTestBase extends FeignIntegrationTest implements 
     protected static FeignClientHelper clientHelper;
     protected static FeignChargesHelper chargesHelper;
     protected static FeignCodeHelper codeHelper;
+    protected static FeignPaymentTypeHelper paymentTypeHelper;
     protected static FeignGlobalConfigurationHelper globalConfigurationHelper;
     protected static FeignSchedulerHelper schedulerHelper;
     protected static FeignExternalEventHelper externalEventHelper;
@@ -173,6 +174,7 @@ public abstract class FeignLoanTestBase extends FeignIntegrationTest implements 
         clientHelper = new FeignClientHelper(client);
         chargesHelper = new FeignChargesHelper(client);
         codeHelper = new FeignCodeHelper(client);
+        paymentTypeHelper = new FeignPaymentTypeHelper(client);
         globalConfigurationHelper = new FeignGlobalConfigurationHelper(client);
         schedulerHelper = new FeignSchedulerHelper(client);
         externalEventHelper = new FeignExternalEventHelper(client);
@@ -1820,7 +1822,7 @@ public abstract class FeignLoanTestBase extends FeignIntegrationTest implements 
     }
 
     protected Long getPaymentTypeId(int index) {
-        return PaymentTypeHelper.getAllPaymentTypes(false).get(index).getId();
+        return paymentTypeHelper.retrieveAllPaymentTypes(false).get(index).getId();
     }
 
     protected void reviewLoanTransactionRelations(Long loanId, Long transactionId, Integer expectedSize) {
