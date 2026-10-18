@@ -27,6 +27,7 @@ import org.apache.fineract.client.feign.services.AuditsApi;
 import org.apache.fineract.client.feign.services.AuthenticationHttpBasicApi;
 import org.apache.fineract.client.feign.services.BatchApiApi;
 import org.apache.fineract.client.feign.services.BulkImportApi;
+import org.apache.fineract.client.feign.services.BulkImportTemplatesApi;
 import org.apache.fineract.client.feign.services.BulkLoansApi;
 import org.apache.fineract.client.feign.services.BusinessDateManagementApi;
 import org.apache.fineract.client.feign.services.BusinessStepConfigurationApi;
@@ -244,6 +245,10 @@ public final class FineractFeignClient {
 
     public BatchApiApi batch() {
         return create(BatchApiApi.class);
+    }
+
+    public BulkImportTemplatesApi bulkImportTemplates() {
+        return create(BulkImportTemplatesApi.class);
     }
 
     public BulkImportApi bulkImport() {
@@ -836,6 +841,17 @@ public final class FineractFeignClient {
          */
         public Builder credentials(String username, String password) {
             configBuilder.credentials(username, password);
+            return this;
+        }
+
+        /**
+         * Sends no Basic Authentication header, for calls that authenticate another way (such as an OAuth2 bearer token
+         * passed in the call's headers) or not at all.
+         *
+         * @return This builder instance
+         */
+        public Builder withoutCredentials() {
+            configBuilder.withoutCredentials();
             return this;
         }
 
